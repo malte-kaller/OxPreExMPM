@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-#This script is the starting point.
-   #creates the basic folder structure for the project.
+# This script is the starting point.
+   #Creates the basic folder structure for the project.
    #Defines the key paths and subjectlist for the project that will be used by subsequent processing
 
 module add fsl
@@ -21,7 +21,7 @@ projectDIR=$workDIR/$projectname
 dataDIR="/vols/Data/preclinical/Yingshi/ReachingTask_T2w_DTI_MPM"
 
 #Define the location of the folder containing the scripts - that is where you should be right now (pwd)
-scriptDIR="$workDIR/project_scripts/RT_MYRD/preprocessing"
+scriptDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 #Define a list of subjects by listing their folder names as defined in dataDIR
 
