@@ -6,13 +6,14 @@
 
 module add fsl
 module add fsl_sub
+
 #---DEFINE BASIC PARAMETERS FOR PROJECT------------------
 
 #Define the name of the project
-projectname="RT_MYRD"
+projectname="ReTa_Yingshi"
 
 #Define path to folder in project should be created
-workDIR="/vols/Data/preclinical/Myelin_HJB/Projects/Pipeline_Test"
+workDIR="/vols/Data/preclinical/Myelin_HJB/Projects/"
 
 #That creates the project directory:
 projectDIR=$workDIR/$projectname
@@ -25,11 +26,8 @@ scriptDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 #Define a list of subjects by listing their folder names as defined in dataDIR
 
-subjlist="20250224_084029_MYRD5_1b_MyReach_T2w_DTI_MPM_1_1
-20250224_204529_MYRD5_1e_MyReach_T2w_DTI_MPM_2_1_5
-20250225_200659_MYRD5_1g_MyReach_T2w_DTI_MPM_1_1
-20250226_081900_MYRD6_1f_MyReach_T2w_DTI_MPM_1_1
-20250226_201908_MYRD6_1e_MyReach_T2w_DTI_MPM_1_1"
+subjlist="20250219_185248_MYRD5_1a_MyReach_T2w_DTI_MPM_2_1_3
+20250224_084029_MYRD5_1b_MyReach_T2w_DTI_MPM_1_1"
 #--------------------------------------------------------
 
 echo "subjects are $subjlist"
