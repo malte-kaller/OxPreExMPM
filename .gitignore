@@ -1,2 +1,6 @@
 #ignore everything that is in the logs
 logs/
+acquisition_order_files/
+DTI/
+MPM/
+project_settings.sh
