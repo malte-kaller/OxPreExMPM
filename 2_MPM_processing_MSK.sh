@@ -27,8 +27,6 @@ MTfile=mt_MGE_TR100_100um_FA6_MT_On
 PDfile=mt_MGE_TR100_100um_FA6_PD
 T1file=mt_MGE_TR100_100um_FA35_T1
 
-
-
 #-------- Script submission below ---------
 
 #======STEP 1: Convert all dicom to NIFTI========
@@ -39,7 +37,28 @@ for subj in $subjlist; do
  
   echo "Job submitted for converting files for $subj";
   
-Step1=`fsl_sub -q short -l $scriptDIR/logs/MPM/ -N hMRIconvert bash $sup_scriptDIR/my_hMRI_DICOM_wrapper_MSK_EDicom.sh $subj`
+#Step1=`fsl_sub -q short -l $scriptDIR/logs/MPM/ -N hMRIconvert bash $sup_scriptDIR/my_hMRI_DICOM_wrapper_MSK_EDicom.sh $subj`
+
+outDIR="$procDIR/$subj/MPM_preprocessing"
+rawDIR="$rawBruDIR/$subj"
+logDIR="$scriptDIR/logs/MPM"
+
+mkdir -p "$outDIR" "$logDIR"
+
+# === Submit MATLAB conversion to the queue ===
+fsl_sub -q short -l "$logDIR" -N "hMRIconvert_$subj" \
+bash -c "
+  echo '[INFO] Converting DICOM for subject: $subj'
+  matlab -nojvm -nodesktop -nosplash -r \"
+    try, 
+      hMRI_DICOM_wrapper_EDicom('${rawDIR}', '${outDIR}'); 
+    catch ME, 
+      disp(getReport(ME)); 
+      exit(1); 
+    end; 
+    exit(0);
+  \" > '${outDIR}/hmri_wrapper_${subj}.log' 2>&1
+"
 
 #======STEP 2: Register repetition =========
 #This script registers repetion of scans to each other to avoid any artefacts

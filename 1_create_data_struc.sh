@@ -29,6 +29,7 @@ scriptDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 subjlist="20250219_185248_MYRD5_1a_MyReach_T2w_DTI_MPM_2_1_3
 20250224_084029_MYRD5_1b_MyReach_T2w_DTI_MPM_1_1"
+
 #--------------------------------------------------------
 
 echo "subjects are $subjlist"
