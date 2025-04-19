@@ -4,7 +4,7 @@
    #Creates the basic folder structure for the project.
    #Defines the key paths and subjectlist for the project that will be used by subsequent processing
 
-#Add the relevant modules here
+#Add the relevant modules here. Relevant for the platform you are on
 module add fsl
 module add fsl_sub
 
