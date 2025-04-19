@@ -27,8 +27,8 @@ scriptDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 #Define a list of subjects by listing their folder names as defined in dataDIR
 
-subjlist="20250219_185248_MYRD5_1a_MyReach_T2w_DTI_MPM_2_1_3
-20250224_084029_MYRD5_1b_MyReach_T2w_DTI_MPM_1_1"
+subjlist="20250327_192739_MYRF29_1f_MyReach_T2w_DTI_MPM_1_1
+20250331_205505_MYRF30_1h_MyReach_T2w_DTI_MPM_1_1"
 
 #--------------------------------------------------------
 
