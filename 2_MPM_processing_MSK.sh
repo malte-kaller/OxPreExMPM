@@ -65,13 +65,13 @@ bash -c "
 
   echo "Job submitted for register repetition of scans for $subj";
   
-#Step2a=`fsl_sub -q short -l $scriptDIR/logs/MPM -N hMRIreg1 bash $sup_scriptDIR/SplitDicom.sh $subj $setting `
+Step2a=$(fsl_sub -q short -j ${Step1} -l "$scriptDIR/logs/MPM" \
+  -N "SplitDicom_${subj}" \
+  bash $sup_scriptDIR/SplitDicom.sh $subj)
 
-#Step2a=`fsl_sub -q short -j ${Step1} -l $scriptDIR/logs/MPM -N hMRIreg1 bash $sup_scriptDIR/SplitDicom.sh $subj`
-
-#Step2=`fsl_sub -q short -j ${Step2a} -l $scriptDIR/logs/MPM -N hMRIreg2 bash $sup_scriptDIR/register_repetitions_MSK_EDicom.sh $subj $MTfile $PDfile $T1file $setting` # hMRIreg is the name of the job
-
-#Step2=`fsl_sub -q short -l $scriptDIR/logs/MPM -N hMRIreg bash $sup_scriptDIR/register_repetitions_MSK_EDicom.sh $subj $MTfile $PDfile $T1file` # hMRIreg is the name of the job
+Step2=$(fsl_sub -q short -j ${Step2a} -l "$scriptDIR/logs/MPM" \
+  -N "RegisterReps_${subj}" \
+  bash $sup_scriptDIR/register_repetitions_MSK_EDicom.sh $subj $MTfile $PDfile $T1file $setting)
 
 #======STEP 3: Register repetition =========
 #This scripts unzips the outputs of the previous output, required for the next step
