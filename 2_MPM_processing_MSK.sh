@@ -8,8 +8,6 @@ source "project_settings.sh"
 
 setting=$scriptDIR/project_settings.sh
 
-subjlist="20250224_084029_MYRD5_1b_MyReach_T2w_DTI_MPM_1_1"
-
 #Add Matlab
 #module add MATLAB
 #module add spm
