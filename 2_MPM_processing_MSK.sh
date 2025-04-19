@@ -5,6 +5,7 @@
 # Need to be in script folder to run this script
 # Source the project settings
 source "project_settings.sh"
+
 setting=$scriptDIR/project_settings.sh
 
 subjlist="20250224_084029_MYRD5_1b_MyReach_T2w_DTI_MPM_1_1"
@@ -38,17 +39,13 @@ for subj in $subjlist; do
  
   echo "Job submitted for converting files for $subj";
   
-#Step1=`fsl_sub -q long.q -l $scriptDIR/logs/MPM/ -N hMRIconvert bash $sup_scriptDIR/my_hMRI_DICOM_wrapper_MSK.sh $subj` # convert dicom to nifti and create json files for hMRI pipeline
-
-#Step1=`fsl_sub -q short -l $scriptDIR/logs/MPM/ -N hMRIconvert bash $sup_scriptDIR/my_hMRI_DICOM_wrapper_MSK_EDicom.sh $subj`
+Step1=`fsl_sub -q short -l $scriptDIR/logs/MPM/ -N hMRIconvert bash $sup_scriptDIR/my_hMRI_DICOM_wrapper_MSK_EDicom.sh $subj`
 
 #======STEP 2: Register repetition =========
 #This script registers repetion of scans to each other to avoid any artefacts
 
   echo "Job submitted for register repetition of scans for $subj";
   
-#Step2=`fsl_sub -q long.q -j ${Step1} -l $scriptDIR/MPM/logs -N hMRIreg bash $sup_scriptDIR/register_repetitions_MSK_EDicom.sh $subj $MTfile $PDfile $T1file` # hMRIreg is the name of the job
-
 #Step2a=`fsl_sub -q short -l $scriptDIR/logs/MPM -N hMRIreg1 bash $sup_scriptDIR/SplitDicom.sh $subj $setting `
 
 #Step2a=`fsl_sub -q short -j ${Step1} -l $scriptDIR/logs/MPM -N hMRIreg1 bash $sup_scriptDIR/SplitDicom.sh $subj`
@@ -73,7 +70,7 @@ for subj in $subjlist; do
 
 #Step4=`fsl_sub -q short -j ${Step3} -l $scriptDIR/logs/MPM -N hMRI_MPMproc bash $sup_scriptDIR/my_hMRI_wrapper_MSK.sh $subj`
 
-Step4=`fsl_sub -q short -l $scriptDIR/logs/MPM -N hMRI_MPMproc bash $sup_scriptDIR/my_hMRI_wrapper_MSK.sh $subj`
+#Step4=`fsl_sub -q short -l $scriptDIR/logs/MPM -N hMRI_MPMproc bash $sup_scriptDIR/my_hMRI_wrapper_MSK.sh $subj`
 
 done
 
