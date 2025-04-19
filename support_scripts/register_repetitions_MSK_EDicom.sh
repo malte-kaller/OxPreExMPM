@@ -1,108 +1,96 @@
 #!/usr/bin/env bash
 
+# Load modules
 module add fsl
 module add fsl_sub
-source $5
 
-# This script prepares MPM echoes from multiple repetitions for hMRI
-# register each repetition/echo to the same space and create average of echoes
-# definitions of paths
-
-dataDir=$rawBruDIR
-workDir=$procDIR
-scriptDir=$scriptDIR
-
-#Definition of subject
+# Get arguments
 subj=$1
-
-#Map Types and specific name of files
-maptype="MT T1 PD"
-
 MTfile=$2
 PDfile=$3
 T1file=$4
+source $5  # project_settings.sh
 
-# create new folders for output
-subDir="$workDir"/"$subj"/MPM_preprocessing/"$subj"_NIFTI
-outDir="${subDir}"/SubjectDIR_RepetitionAverage
-mkdir -p $outDir
+# Define map types
+maptype="MT T1 PD"
 
-#Create a record of all the files in a text document 
-rm "$scriptDIR"/acquisition_order_files/MT/MT_"$subj".txt
-rm "$scriptDIR"/acquisition_order_files/PD/PD_"$subj".txt
-rm "$scriptDIR"/acquisition_order_files/T1/T1_"$subj".txt
+# Define input/output paths based on updated structure
+subDir="$procDIR/$subj/MPM_preprocessing"
+outDir="$subDir/SubjectDIR_RepetitionAverage"
+mkdir -p "$outDir"
 
-mkdir -p "$scriptDIR"/acquisition_order_files/MT
-ls -d "$subDir"/$MTfile* >> "$scriptDIR"/acquisition_order_files/MT/MT_"$subj".txt
+# === Step 1: Build acquisition order files ===
 
-mkdir -p "$scriptDIR"/acquisition_order_files/PD
-ls -d "$subDir"/$PDfile* >> "$scriptDIR"/acquisition_order_files/PD/PD_"$subj".txt
-
-mkdir -p ${scriptDIR}/acquisition_order_files/T1
-ls -d "$subDir"/$T1file* >> "$scriptDIR"/acquisition_order_files/T1/T1_"$subj".txt
-
-#Create a loop for each modality 
 for map in $maptype; do
+  mkdir -p "$scriptDIR/acquisition_order_files/$map"
+  outFile="$scriptDIR/acquisition_order_files/${map}/${map}_${subj}.txt"
+  rm -f "$outFile"
+  
+  # List all folders matching the scan type (e.g., MT) into the acquisition order file
+  ls -d "$subDir"/${!mapfile}* >> "$outFile"
+done
 
-  echo "$map"
+# === Step 2: Loop over each modality ===
 
-  referenceScan=$(cat "$scriptDIR"/acquisition_order_files/"$map"/"$map"_"$subj".txt | head -n 1)
+for map in $maptype; do
+  echo "[INFO] Processing map type: $map"
 
-      # for each repetition
-      for repetition in $(cat "$scriptDIR"/acquisition_order_files/"$map"/"$map"_"$subj".txt); do
+  mapFile="$scriptDIR/acquisition_order_files/${map}/${map}_${subj}.txt"
+  referenceScan=$(head -n 1 "$mapFile")
 
-      echo "$repetition"
+  while read -r repetition; do
+    echo "[INFO] Processing repetition: $repetition"
 
-      # take average of echoes within the same repetition
-      fslmerge -t $repetition/repetition_sum.nii.gz $repetition/*.nii.gz
-      fslmaths $repetition/repetition_sum.nii.gz -Tmean $repetition/repetition_average.nii.gz
-      rm $repetition/repetition_sum.nii.gz
+    # Step 2.1: Average all echoes within a repetition
+    fslmerge -t "$repetition/repetition_sum.nii.gz" "$repetition"/*.nii.gz
+    fslmaths "$repetition/repetition_sum.nii.gz" -Tmean "$repetition/repetition_average.nii.gz"
+    rm -f "$repetition/repetition_sum.nii.gz"
 
-      # register to the first repetition's average of echoes with 6DOF, Search cost set to normmi
-      flirt1=`fsl_sub -q short -l $scriptDir/logs/MPM/regrep flirt -in $repetition/repetition_average.nii.gz -ref $referenceScan/repetition_average.nii.gz -out $repetition/repetition_average_registered.nii.gz -omat $repetition/repetition_average_transform.mat -interp spline -dof 6 -searchcost normmi -cost normmi`
+    # Step 2.2: Register to reference scan
+    flirt -in "$repetition/repetition_average.nii.gz" \
+          -ref "$referenceScan/repetition_average.nii.gz" \
+          -out "$repetition/repetition_average_registered.nii.gz" \
+          -omat "$repetition/repetition_average_transform.mat" \
+          -interp spline -dof 6 -searchcost normmi -cost normmi
 
-        # apply registration transform to all echoes
-        for a in {1..8}; do
-        echo "echo number $a"
-        flirt2=`fsl_sub -q short -j ${flirt1} -l $scriptDir/logs/MPM/regrep flirt -in $repetition/MF*_echo_000"$((a-1))".nii.gz -ref $referenceScan/repetition_average.nii.gz -applyxfm -init $repetition/repetition_average_transform.mat -out $repetition/coregistered_echo_"$a" -interp spline -dof 6`
-        done
+    # Step 2.3: Apply transformation to all echo images (assumes 8 echoes)
+    for a in {0..7}; do
+      echo "[INFO] Registering echo $a"
+      echoFile=$(printf "%04d" $a)
+      inputFile=$(find "$repetition" -name "MF*_echo_${echoFile}.nii.gz")
+      flirt -in "$inputFile" \
+            -ref "$referenceScan/repetition_average.nii.gz" \
+            -applyxfm -init "$repetition/repetition_average_transform.mat" \
+            -out "$repetition/coregistered_echo_$((a+1)).nii.gz" \
+            -interp spline
+    done
+    echo "[INFO] Done with $repetition"
+  done < "$mapFile"
 
-      echo "done with $repetition"
-
-      done
-
-  # crete new folder for the average of repetitions
-  mkdir -p $outDir/"$map"wDIR
-  # Copy json from raw echo to the average of repetitions for each echo
-  for a in {1..8}; do
-  cp1=`fsl_sub -q short -j ${flirt2} -l $scriptDir/logs/MPM/regrep cp $referenceScan/MF*_echo_000"$((a-1))".json $outDir/"$map"wDIR/`
-  mv1=`fsl_sub -q short -j ${cp1} -l $scriptDir/logs/MPM/regrep mv $outDir/"$map"wDIR/MF*_echo_000"$((a-1))".json $outDir/"$map"wDIR/"$map"W_echo_mean_"$a".json`
+  # === Step 3: Copy and rename JSONs from reference scan ===
+  mkdir -p "$outDir/${map}wDIR"
+  for a in {0..7}; do
+    echoFile=$(printf "%04d" $a)
+    srcJson=$(find "$referenceScan" -name "MF*_echo_${echoFile}.json")
+    destJson="$outDir/${map}wDIR/${map}W_echo_mean_$((a+1)).json"
+    cp "$srcJson" "$destJson"
+    echo "[INFO] Copied metadata to $destJson"
   done
-
-echo "done"
-
 done
 
+# === Step 4: Average across repetitions for each map and echo ===
 
-# average the echoes across repetitions into the output folder
 for a in {1..8}; do
-echo "echo number $a"
+  echo "[INFO] Averaging echo $a across repetitions"
 
-# MT
-fslmerge1=`fsl_sub -q short -j ${mv1} -l $scriptDir/logs/MPM/regrep fslmerge -t $outDir/MTwDIR/repetition_sum_"$a".nii $subDir/${MTfile}*/coregistered_echo_"$a".nii.gz`
-fslmaths1=`fsl_sub -q short -j ${fslmerge1} -l $scriptDir/logs/MPM/regrep fslmaths $outDir/MTwDIR/repetition_sum_"$a".nii -Tmean $outDir/MTwDIR/MTW_echo_mean_"$a".nii`
-rm1=`fsl_sub -q short -j ${fslmaths1} -l $scriptDir/logs/MPM/regrep rm $outDir/MTwDIR/repetition_sum_"$a".nii.gz`
-
-# T1
-fslmerge2=`fsl_sub -q short -j ${rm1} -l $scriptDir/logs/MPM/regrep fslmerge -t $outDir/T1wDIR/repetition_sum_"$a".nii $subDir/${T1file}*/coregistered_echo_"$a".nii.gz`
-fslmaths2=`fsl_sub -q short -j ${fslmerge2} -l $scriptDir/logs/MPM/regrep fslmaths $outDir/T1wDIR/repetition_sum_"$a".nii -Tmean $outDir/T1wDIR/T1W_echo_mean_"$a".nii`
-rm1=`fsl_sub -q short -j ${fslmaths2} -l $scriptDir/logs/MPM/regrep rm $outDir/T1wDIR/repetition_sum_"$a".nii.gz`
-
-# PD
-fslmerge3=`fsl_sub -q short -j ${rm1} -l $scriptDir/logs/MPM/regrep fslmerge -t $outDir/PDwDIR/repetition_sum_"$a".nii $subDir/${PDfile}*/coregistered_echo_"$a".nii.gz`
-fslmaths3=`fsl_sub -q short -j ${fslmerge3} -l $scriptDir/logs/MPM/regrep fslmaths $outDir/PDwDIR/repetition_sum_"$a".nii -Tmean $outDir/PDwDIR/PDW_echo_mean_"$a".nii`
-rm1=`fsl_sub -q short -j ${fslmaths3} -l $scriptDir/logs/MPM/regrep rm $outDir/PDwDIR/repetition_sum_"$a".nii.gz`
-
+  for map in MT T1 PD; do
+    echo "[INFO] Averaging $map echo $a"
+    input_files=$(find "$subDir/${!mapfile}"* -name "coregistered_echo_${a}.nii.gz")
+    fslmerge -t "$outDir/${map}wDIR/repetition_sum_${a}.nii.gz" $input_files
+    fslmaths "$outDir/${map}wDIR/repetition_sum_${a}.nii.gz" \
+             -Tmean "$outDir/${map}wDIR/${map}W_echo_mean_${a}.nii.gz"
+    rm -f "$outDir/${map}wDIR/repetition_sum_${a}.nii.gz"
+  done
 done
 
-echo "===SCRIPT DONE==="
+echo "=== SCRIPT DONE ==="
