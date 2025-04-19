@@ -46,7 +46,7 @@ logDIR="$scriptDIR/logs/MPM"
 mkdir -p "$outDIR" "$logDIR"
 
 # === Submit MATLAB conversion to the queue ===
-fsl_sub -q short -l "$logDIR" -N "hMRIconvert_$subj" \
+Step1=$(fsl_sub -q short -l "$logDIR" -N "hMRIconvert_$subj" \
 bash -c "
   echo '[INFO] Converting DICOM for subject: $subj'
   matlab -nojvm -nodesktop -nosplash -r \"
@@ -57,8 +57,8 @@ bash -c "
       exit(1); 
     end; 
     exit(0);
-  \" > '${outDIR}/hmri_wrapper_${subj}.log' 2>&1
-"
+  \" > '${logDIR}/hmri_wrapper_${subj}.log' 2>&1
+")
 
 #======STEP 2: Register repetition =========
 #This script registers repetion of scans to each other to avoid any artefacts
