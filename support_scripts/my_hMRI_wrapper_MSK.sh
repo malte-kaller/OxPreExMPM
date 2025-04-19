@@ -11,7 +11,7 @@ source $2  # source project_settings.sh
 
 # --- Define paths ---
 input_dir="$procDIR/$subj/MPM_preprocessing/SubjectDIR_RepetitionAverage"
-defaults_dir="$scriptDIR/hMRI_defaults"  # Adjust if your defaults are elsewhere
+defaults_dir="$scriptDIR/"  # Adjust if your defaults are elsewhere
 logDIR="$scriptDIR/logs/MPM"
 mkdir -p "$logDIR"
 log_file="$logDIR/hmri_wrapper_${subj}.log"

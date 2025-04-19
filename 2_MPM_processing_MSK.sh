@@ -78,11 +78,8 @@ Step2=$(fsl_sub -q short -j ${Step2a} -l "$scriptDIR/logs/MPM" \
 
   echo "Job submitted caclulating MPM parameters $subj";
 
-#Step4=`fsl_sub -q long.q -j ${Step3} -l $scriptDIR/MPM/logs -N hMRI_MPMproc bash $sup_scriptDIR/my_hMRI_wrapper_MSK.sh` $scan
-
-#Step3=`fsl_sub -q short -j ${Step2} -l $scriptDIR/logs/MPM -N hMRI_MPMproc bash $sup_scriptDIR/my_hMRI_wrapper_MSK.sh $subj`
-
-#Step4=`fsl_sub -q short -l $scriptDIR/logs/MPM -N hMRI_MPMproc bash $sup_scriptDIR/my_hMRI_wrapper_MSK.sh $subj`
+Step3=$(fsl_sub -q short -j ${Step2} -l $scriptDIR/logs/MPM -N hMRI_MPMproc_${subj} \
+  bash $sup_scriptDIR/my_hMRI_wrapper_MSK.sh $subj $setting)
 
 done
 
