@@ -73,21 +73,14 @@ Step2=$(fsl_sub -q short -j ${Step2a} -l "$scriptDIR/logs/MPM" \
   -N "RegisterReps_${subj}" \
   bash $sup_scriptDIR/register_repetitions_MSK_EDicom.sh $subj $MTfile $PDfile $T1file $setting)
 
-#======STEP 3: Register repetition =========
-#This scripts unzips the outputs of the previous output, required for the next step
-
-#Step3=`fsl_sub -q short -j ${Step2} -l $scriptDIR/MPM/logs -N hMRIregzip bash hMRI_unzip_reps_MSK.sh $subj  `
-
-#Step3=`fsl_sub -q short -j ${Step2} -l $scriptDIR/MPM/logs -N hMRIregzip bash $sup_scriptDIR/hMRI_unzip_reps_MSK.sh $subj $setting`
-
-#======STEP 4: Run the MPM caclulation via the hMRI pipeline =========
+#======STEP 3: Run the MPM caclulation via the hMRI pipeline =========
 #Calculate parameters for the MPM processing
 
   echo "Job submitted caclulating MPM parameters $subj";
 
 #Step4=`fsl_sub -q long.q -j ${Step3} -l $scriptDIR/MPM/logs -N hMRI_MPMproc bash $sup_scriptDIR/my_hMRI_wrapper_MSK.sh` $scan
 
-#Step4=`fsl_sub -q short -j ${Step3} -l $scriptDIR/logs/MPM -N hMRI_MPMproc bash $sup_scriptDIR/my_hMRI_wrapper_MSK.sh $subj`
+#Step3=`fsl_sub -q short -j ${Step2} -l $scriptDIR/logs/MPM -N hMRI_MPMproc bash $sup_scriptDIR/my_hMRI_wrapper_MSK.sh $subj`
 
 #Step4=`fsl_sub -q short -l $scriptDIR/logs/MPM -N hMRI_MPMproc bash $sup_scriptDIR/my_hMRI_wrapper_MSK.sh $subj`
 

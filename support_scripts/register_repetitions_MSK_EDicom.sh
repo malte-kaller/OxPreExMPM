@@ -93,4 +93,12 @@ for a in {1..8}; do
   done
 done
 
+# === Step 5: Unzip all .nii.gz files (hMRI requires uncompressed) ===
+
+echo "[INFO] Unzipping final files for hMRI processing..."
+
+gunzip -f "$outDir"/MTwDIR/*.nii.gz
+gunzip -f "$outDir"/PDwDIR/*.nii.gz
+gunzip -f "$outDir"/T1wDIR/*.nii.gz
+
 echo "=== SCRIPT DONE ==="
