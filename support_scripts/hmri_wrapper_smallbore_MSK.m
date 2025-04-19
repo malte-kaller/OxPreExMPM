@@ -1,9 +1,6 @@
 function hmri_wrapper_smallbore_MSK(directory,defaultsfiledir)
 
 %Add Path to hMRI toolbox
-%addpath  /home/fs0/mkaller/scratch/Postdoc_Data/Scripts/Precli_MPM/hMRI-Toolbox/
-%addpath  /home/fs0/mkaller/scratch/Postdoc_Data/PreProcessMRI/MPM/AL_Data_Test3/Scripts/hMRI-toolbox/
-%addpath /vols/Data/preclinical/Yingshi/MYFR_T2W_MPM_MTR_DTI_Summer22/NoCA/scripts_MYRF22_noCA_Yingshi_copied20240802/toolbox/hMRI-Toolbox/
 addpath /cvmfs/software.fmrib.ox.ac.uk/eb/el9/software/hMRI/0.6.1-MATLAB-2024a/hMRI-toolbox-0.6.1
 
 
