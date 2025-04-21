@@ -32,23 +32,13 @@ T1file=mt_MGE_TR100_100um_FA35_T1
 #This step takes all DICOM files from the raw brukers folder and converts them into NIFTI files via the SPM piline, which is required for the MPM process pipeline. 
 
 for subj in $subjlist; do
- 
-  echo "Job submitted for converting files for $subj";
-  
+   
 #Step1=`fsl_sub -q short -l $scriptDIR/logs/MPM/ -N hMRIconvert bash $sup_scriptDIR/my_hMRI_DICOM_wrapper_MSK_EDicom.sh $subj`
 
-outDIR="$procDIR/$subj/MPM_preprocessing"
-rawDIR="$rawBruDIR/$subj"
-logDIR="$scriptDIR/logs/MPM"
+echo "Submitting DICOM conversion job for subject: $subj"
 
-mkdir -p "$outDIR" "$logDIR"
-
-# === Submit MATLAB conversion to the queue ===
-
-Step1=$(fsl_sub -q short -l "$logDIR" -N hMRIconvert_${subj} \
-  bash -c 'echo "[INFO] Converting DICOM for subject: '"$subj"'"
-  matlab -nojvm -nodesktop -nosplash -r "try, hMRI_DICOM_wrapper_EDicom('\'''"$rawBruDIR/$subj"''\'','\'''"$procDIR/$subj/MPM_preprocessing"''\''); catch ME, disp(getReport(ME)); exit(1); end; exit(0);" > "'"$procDIR/$subj/MPM_preprocessing/hmri_convert_${subj}.log"'" 2>&1'
-)
+Step1=$(fsl_sub -q short -l "$scriptDIR/logs/MPM" -N "hMRIconvert_${subj}" \
+  bash "$sup_scriptDIR/my_hMRI_DICOM_wrapper_MSK_EDicom.sh" "$subj" "$scriptDIR/project_settings.sh")
 
 #======STEP 2: Register repetition =========
 #This script registers repetion of scans to each other to avoid any artefacts

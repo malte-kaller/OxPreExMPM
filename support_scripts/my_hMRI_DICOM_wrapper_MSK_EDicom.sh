@@ -1,34 +1,42 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# Before use:
-# - edit your inputs to hMRI_wrapper below!
-# - edit the path to the hMRI_wrapper script in the 'cd' command ad the end
+# === USAGE ===
+# my_hMRI_DICOM_wrapper_MSK_EDicom.sh <subject> <settings_file>
+# Called by fsl_sub from the main pipeline
 
-# don't run this script directly, but call it using the following script:
-# my_hMRI_DICOM_wrapper_submit.sh
-# the my_hMRI_DICOM_wrapper_submit.sh script will submit the matlab function to the queue
+# --- Load subject and settings ---
+subj=$1
+source $2  # e.g., project_settings.sh
 
-# Source the project settings
-source "project_settings.sh"
+# --- Define input and output paths ---
+input_dir="$rawBruDIR/$subj"
+output_dir="$procDIR/$subj/MPM_preprocessing"
+log_file="$output_dir/hmri_convert_${subj}.log"
 
-#define output directory 
+mkdir -p "$output_dir"
 
-scan=$1
-outDIR=$procDIR/$scan/MPM_preprocessing
-mkdir -p $outDIR 
+# --- Run the DICOM conversion in MATLAB ---
+echo "[INFO] Starting DICOM conversion for subject: $subj"
+echo "[INFO] Input dir: $input_dir"
+echo "[INFO] Output dir: $output_dir"
+echo "[INFO] Log file: $log_file"
 
-# define function to pass the inputs to the hMRI_wapper
+matlab -nojvm -nodesktop -nosplash -r "
+try
+  hMRI_DICOM_wrapper('$input_dir', '$output_dir');
+catch ME
+  disp(getReport(ME));
+  exit(1);
+end
+exit(0);
+" > "$log_file" 2>&1
 
-my_hMRI_wrapper(){
-scan=$1
+exit_code=$?
 
-echo "do "$scan
-matlab -nojvm -nodesktop -nosplash -r "hMRI_DICOM_wrapper_EDicom('"$rawBruDIR/$scan"','"$outDIR/$scan"_NIFTI')"
-
-}
-
-# here the function is actually called
-# $1 represents the input we are giving to my_hMRI_wrapper.sh (e.g. '01')
-cd $sup_scriptDIR
-my_hMRI_wrapper $1
-cd $scriptDIR
+if [ $exit_code -ne 0 ]; then
+  echo "[ERROR] MATLAB DICOM conversion failed for $subj. See log: $log_file"
+  exit $exit_code
+else
+  echo "[SUCCESS] DICOM conversion completed for $subj"
+  exit 0
+fi
