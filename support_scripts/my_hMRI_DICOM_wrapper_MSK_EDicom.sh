@@ -21,15 +21,7 @@ echo "[INFO] Input dir: $input_dir"
 echo "[INFO] Output dir: $output_dir"
 echo "[INFO] Log file: $log_file"
 
-matlab -nojvm -nodesktop -nosplash -r "
-try
-  hMRI_DICOM_wrapper('$input_dir', '$output_dir');
-catch ME
-  disp(getReport(ME));
-  exit(1);
-end
-exit(0);
-" > "$log_file" 2>&1
+matlab -nojvm -nodesktop -nosplash -r "try, hMRI_DICOM_wrapper('$input_dir', '$output_dir'); catch ME, disp(getReport(ME)); exit(1); end; exit(0);" > "$log_file" 2>&1
 
 exit_code=$?
 
