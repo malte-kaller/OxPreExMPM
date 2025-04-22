@@ -53,13 +53,23 @@ Step2=$(fsl_sub -q short -j ${Step2a} -l "$scriptDIR/logs/MPM" \
   -N "RegisterReps_${subj}" \
   bash $sup_scriptDIR/register_repetitions_MSK_EDicom.sh $subj $MTfile $PDfile $T1file $setting)
 
-#======STEP 3: Run the MPM caclulation via the hMRI pipeline =========
-#Calculate parameters for the MPM processing
+# === STEP 3: Generate and register B1 map for hMRI processing ===
+echo "Submitting Step 3 (B1 map generation and registration) for subject: $subj"
 
-  echo "Job submitted caclulating MPM parameters $subj";
+# Step 3a: Calculate B1 map (Double Angle Mapping)
+Step3a=$(fsl_sub -q short -j ${Step2} -l "$scriptDIR/logs/MPM" -N "B1DAM_${subj}" \
+  bash "$sup_scriptDIR/Double_Angle_Mapping_MSK.sh" "$subj" "$setting")
 
-Step3=$(fsl_sub -q short -j ${Step2} -l $scriptDIR/logs/MPM -N hMRI_MPMproc_${subj} \
-  bash $sup_scriptDIR/my_hMRI_wrapper_MSK.sh $subj $setting)
+# Step 3b: Register B1 map
+Step3=$(fsl_sub -q short -j ${Step3a} -l "$scriptDIR/logs/MPM" -N "B1Reg_${subj}" \
+  bash "$sup_scriptDIR/B1_register_MSK.sh" "$subj" "$setting")
+
+
+# === STEP 4: Run final MPM processing using hMRI toolbox ===
+echo "Submitting Step 4 (hMRI MPM calculation) for subject: $subj"
+
+Step4=$(fsl_sub -q short -j ${Step3} -l "$scriptDIR/logs/MPM" -N "hMRI_MPMproc_${subj}" \
+  bash "$sup_scriptDIR/my_hMRI_wrapper_MSK.sh" "$subj" "$setting")
 
 done
 
