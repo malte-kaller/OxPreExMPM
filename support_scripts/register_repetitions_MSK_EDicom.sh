@@ -68,6 +68,7 @@ for map in $maptype; do
 done
 
 # === Step 3: Average across repetitions ===
+
 for a in {1..8}; do
   for map in $maptype; do
     echo_files=$(find "$subDir" -type f -name "coregistered_echo_${a}.nii.gz" -path "*/${!map}file*/coregistered_echo_${a}.nii.gz")
