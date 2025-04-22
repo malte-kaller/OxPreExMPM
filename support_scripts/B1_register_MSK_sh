@@ -18,7 +18,7 @@ dataDir=$rawBruDIR
 workDir=$procDIR
 scriptDir=$scriptDIR
 
-subDir="$procDIR"/"$subj"/MPM_preprocessing/"$subj"_NIFTI
+subDir="$procDIR"/"$subj"/MPM_preprocessing/
 workDir=$subDir
 
 # B1DIR

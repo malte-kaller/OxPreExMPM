@@ -9,7 +9,7 @@ source $2
 subj=$1
 
 #Define Subject directory
-subDir="$procDIR"/"$subj"/MPM_preprocessing/"$subj"_NIFTI
+subDir="$procDIR"/"$subj"/MPM_preprocessing/
 
 #Defining directory to be created
 
