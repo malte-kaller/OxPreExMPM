@@ -1,27 +1,20 @@
 #!/usr/bin/env bash
 
-# === USAGE ===
-# my_hMRI_DICOM_wrapper_MSK_EDicom.sh <subject> <settings_file>
-# Called by fsl_sub from the main pipeline
+# Usage: my_hMRI_DICOM_wrapper_MSK_EDicom.sh <subject> <settings_file>
 
-# --- Load subject and settings ---
 subj=$1
-source $2  # e.g., project_settings.sh
+source $2  # project_settings.sh
 
-# --- Define input and output paths ---
 input_dir="$rawBruDIR/$subj"
 output_dir="$procDIR/$subj/MPM_preprocessing"
-log_file="$output_dir/hmri_convert_${subj}.log"
+log_file="$scriptDIR/logs/MPM/hmri_convert_${subj}.log"
 
-mkdir -p "$output_dir"
+mkdir -p "$output_dir" "$(dirname "$log_file")"
 
-# --- Run the DICOM conversion in MATLAB ---
-echo "[INFO] Starting DICOM conversion for subject: $subj"
-echo "[INFO] Input dir: $input_dir"
-echo "[INFO] Output dir: $output_dir"
+echo "[INFO] Running DICOM wrapper for $subj"
 echo "[INFO] Log file: $log_file"
 
-matlab -nojvm -nodesktop -nosplash -r "try, hMRI_DICOM_wrapper('$input_dir', '$output_dir'); catch ME, disp(getReport(ME)); exit(1); end; exit(0);" > "$log_file" 2>&1
+matlab -nojvm -nodesktop -nosplash -r "hMRI_DICOM_wrapper_EDicom('$input_dir', '$output_dir'); exit;" > "$log_file" 2>&1
 
 exit_code=$?
 
