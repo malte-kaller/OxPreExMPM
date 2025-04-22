@@ -2,12 +2,11 @@
 
 # === USAGE ===
 # my_hMRI_wrapper_MSK.sh <subject> <settings_file>
-# This script runs the hMRI processing step via MATLAB for a given subject
-# It is meant to be submitted via fsl_sub in the main pipeline
+# Called by fsl_sub from the main pipeline
 
 # --- Load subject and settings ---
 subj=$1
-source $2  # source project_settings.sh
+source $2  # e.g., project_settings.sh
 
 # --- Define paths ---
 input_dir="$procDIR/$subj/MPM_preprocessing/SubjectDIR_RepetitionAverage"
@@ -21,15 +20,7 @@ echo "[INFO] Starting hMRI MPM processing for subject: $subj"
 echo "[INFO] Input directory: $input_dir"
 echo "[INFO] Log: $log_file"
 
-matlab -nojvm -nodesktop -nosplash -r "
-try
-  hmri_wrapper_smallbore_MSK('$input_dir', '$defaults_dir');
-catch ME
-  disp(getReport(ME));
-  exit(1);
-end
-exit(0);
-" > "$log_file" 2>&1
+matlab -nojvm -nodesktop -nosplash -r "try, hmri_wrapper_smallbore_MSK('$input_dir', '$defaults_dir'); catch ME, disp(getReport(ME)); exit(1); end; exit(0);" > "$log_file" 2>&1
 
 exit_code=$?
 
