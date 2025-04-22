@@ -9,7 +9,7 @@ source $2  # e.g., project_settings.sh
 
 # --- Define input/output/log paths ---
 input_dir="$procDIR/$subj/MPM_preprocessing/SubjectDIR_RepetitionAverage"
-defaults_dir="$scriptDIR/"  # Adjust if defaults file lives elsewhere
+defaults_dir="$sup_scriptDIR"  # Adjust if defaults file lives elsewhere
 logDIR="$scriptDIR/logs/MPM"
 mkdir -p "$logDIR"
 log_file="$logDIR/hmri_wrapper_${subj}.log"
