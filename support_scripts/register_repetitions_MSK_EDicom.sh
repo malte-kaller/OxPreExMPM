@@ -67,16 +67,34 @@ for map in $maptype; do
 
 done
 
-# === Step 3: Average across repetitions ===
+
+# === Step 3: Average across repetitions for each map and echo ===
 
 for a in {1..8}; do
-  for map in $maptype; do
-    echo_files=$(find "$subDir" -type f -name "coregistered_echo_${a}.nii.gz" -path "*/${!map}file*/coregistered_echo_${a}.nii.gz")
-    fslmerge -t "$outDir/${map}wDIR/repetition_sum_${a}.nii.gz" $echo_files
-    fslmaths "$outDir/${map}wDIR/repetition_sum_${a}.nii.gz" -Tmean "$outDir/${map}wDIR/${map}W_echo_mean_${a}.nii.gz"
-    rm -f "$outDir/${map}wDIR/repetition_sum_${a}.nii.gz"
+  echo "[INFO] Averaging echo $a across repetitions"
+
+  for map in MT T1 PD; do
+    echo "[INFO] Averaging $map echo $a"
+
+    mapfile="${map}file"
+    pattern="${!mapfile}"
+
+    input_files=$(find "$subDir"/${pattern}* -name "coregistered_echo_${a}.nii.gz")
+
+    if [ -z "$input_files" ]; then
+      echo "[WARNING] No input files found for $map echo $a — skipping"
+      continue
+    fi
+
+    rep_dir="$outDir/${map}wDIR"
+    mkdir -p "$rep_dir"
+
+    fslmerge -t "$rep_dir/repetition_sum_${a}.nii.gz" $input_files
+    fslmaths "$rep_dir/repetition_sum_${a}.nii.gz" -Tmean "$rep_dir/${map}W_echo_mean_${a}.nii.gz"
+    rm -f "$rep_dir/repetition_sum_${a}.nii.gz"
   done
 done
+
 
 # === Step 4: Unzip final .nii.gz files for hMRI ===
 echo "[INFO] Unzipping final files for hMRI processing..."
