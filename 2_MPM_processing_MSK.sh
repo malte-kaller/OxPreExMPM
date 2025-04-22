@@ -47,7 +47,7 @@ Step1=$(fsl_sub -q short -l "$scriptDIR/logs/MPM" -N "hMRIconvert_${subj}" \
   
 Step2a=$(fsl_sub -q short -j ${Step1} -l "$scriptDIR/logs/MPM" \
   -N "SplitDicom_${subj}" \
-  bash $sup_scriptDIR/SplitDicom.sh $subj)
+  bash $sup_scriptDIR/SplitDicom.sh $subj $setting)
 
 Step2=$(fsl_sub -q short -j ${Step2a} -l "$scriptDIR/logs/MPM" \
   -N "RegisterReps_${subj}" \
