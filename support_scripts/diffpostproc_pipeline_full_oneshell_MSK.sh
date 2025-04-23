@@ -1,27 +1,12 @@
 #!/bin/bash
+
 module add mrdegibbs
 module add fsl
 
-
-#Could define path to the actual pipeline here, incase we want a fixed version that works. 
-
-if [ $# -lt 4 ]
-then
-    echo "Usage: $0 inputdir exp_no_shell1 exp_no_blipdown outputdir [options]"
-    echo ""
-    echo "<options>:"
-    echo "--run_applytopup: run applytopup after running topup, this is an alternative to eddy"
-    echo ""
-    echo "Notes: "
-    echo "*Part 1 of pipeline (up to Gibbs-ringing correction): data retrieval and organisation which assumes Bruker file structure."
-    echo ""
-    echo "*Part 2 of pipeline (after and including Gibbs-ringing correction) is more generic and will require organising the files in the pipeline's folder structure and a two-shell dMRI dataset."
-    echo ""
-    echo "*Pipeline requires a blip reversed (blip down) b=0 image for topup-based estimation of distortions."
-    echo ""
-    echo "For any questions, please contact cristiana.tisca@linacre.ox.ac.uk."
-
-    exit 0
+# Parse input arguments
+if [ $# -lt 4 ]; then
+    echo "Usage: $0 inputdir exp_no_shell1 exp_no_blipdown outputdir [settings_file] [--run_applytopup]"
+    exit 1
 fi
 
 inputdir=$1
@@ -29,81 +14,106 @@ shell1=$2
 blipDown=$3
 outputdir=$4
 source $5
+shift 5
 
-if [ -d "${outputdir}" ];
-then
-  echo "Output directory exists. Will work there."
-else
-  mkdir ${outputdir}
-fi
+# Optional flag
+applytopup=""
 
-shift
-while [ ! -z "$1" ]
-do
+while [ ! -z "$1" ]; do
   case "$1" in
-    --run_applytopup) applytopup=yes;;
+    --run_applytopup) applytopup="yes" ;;
   esac
   shift
 done
 
-logDIR=$scriptDIR/DTI
-
-#echo Part 1 of the pipeline: data retrieval specific to Bruker file structure.
-#echo Queuing Bruker file handling, orientation correction and mask generation.
-#jid1=`fsl_sub -q long.q -l ${logDIR}/logs1 /vols/Data/km/cetisca/projects/diffpostproc-exvivo-mouse-bruker7t/diffpostproc_step1_oneshell.sh ${inputdir} ${shell1} ${blipDown} ${outputdir}`
-#echo Jobid $jid1
-
-echo Part 1 of the pipeline: data retrieval specific to Bruker file structure.
-echo Queuing Bruker file handling, orientation correction and mask generation.
-jid1=`fsl_sub -q short -l ${logDIR}/DTI/logs1 /vols/Data/km/cetisca/projects/diffpostproc-exvivo-mouse-bruker7t/diffpostproc_step1_oneshell.sh ${inputdir} ${shell1} ${blipDown} ${outputdir}`
-echo Jobid $jid1
-
-#echo Part 2 of the pipeline:
-echo Queuing Gibbs ringing correction.
-#jid2=`fsl_sub -q long.q -j $jid1 -l ${outputdir}/ deGibbs3D ${outputdir}/data.nii.gz ${outputdir}/data_gibbs.nii.gz `
-#echo Jobid $jid2
-
-jid2=`fsl_sub -q short -j $jid1 -l ${logDIR}/logs2 deGibbs3D ${outputdir}/data.nii.gz ${outputdir}/data_gibbs.nii.gz `
-echo Jobid $jid2
-
-
-#echo Queuing pretopup file processing
-jid3=`fsl_sub -q short -l ${logDIR}/logs3 -j $jid2 /vols/Data/km/cetisca/projects/diffpostproc-exvivo-mouse-bruker7t/diffpostproc_step3.sh ${outputdir}`
-echo Jobid $jid3
-
-#echo Queuing topup.
-#jid4=`fsl_sub -q cuda.q -j $jid3 -l ${outputdir}/logs4 topup --imain=${outputdir}/b0_topup --datain=${outputdir}/acp.txt --config=${outputdir}/topup_mouse.cnf --out=${outputdir}/topup_mouse_output_2b0 --fout=${outputdir}/topup_mouse_field_2b0 --iout=${outputdir}/topup_mouse_unwarped_images_2b0 --logout=${outputdir}/topup_mouse_2b0.log --verbose`
-#echo Jobid $jid4
-
-jid4=`fsl_sub -q gpu_long -j $jid3 -l ${logDIR}/logs4 topup --imain=${outputdir}/b0_topup --datain=${outputdir}/acp.txt --config=${outputdir}/topup_mouse.cnf --out=${outputdir}/topup_mouse_output_2b0 --fout=${outputdir}/topup_mouse_field_2b0 --iout=${outputdir}/topup_mouse_unwarped_images_2b0 --logout=${outputdir}/topup_mouse_2b0.log --verbose`
-echo Jobid $jid4
-
-
-#echo Queuing post-topup file orientations.
-jid5=`fsl_sub -q short -l ${logDIR}/logs4 -j $jid4 /vols/Data/km/cetisca/projects/diffpostproc-exvivo-mouse-bruker7t/diffpostproc_step4.sh ${outputdir}`
-echo Jobid $jid5
-
-#echo Applytopup:
-if [ ! -z $applytopup ]
-  then
-  echo "Queuing applytopup. Note this is in addition to eddy, whose output is fed into dtifit."
-  jid6=`fsl_sub -q short -l ${logDIR}/logsapplytopup -j $jid5 applytopup --imain=${outputdir}/data_gibbs_cp --datain=${outputdir}/acp.txt --inindex=1 --topup=${outputdir}/topup_mouse_output_2b0 --method=jac --out=${outputdir}/data_gibbs_applytopup`
-  echo Jobid $jid6
-  else
-  echo "Applytopup won't be run, option not selected."
+if [ ! -d "$outputdir" ]; then
+  echo "[INFO] Creating output directory: $outputdir"
+  mkdir -p "$outputdir"
+else
+  echo "[INFO] Output directory exists: $outputdir"
 fi
 
-#echo Queuing eddy cuda.
-jid7=`fsl_sub -q gpu_long -j $jid5 -l ${logDIR}/logs4 eddy_cuda10.2 --imain=${outputdir}/data_gibbs_cp --mask=${outputdir}/b0_mean_mask_test.nii.gz --acqp=${outputdir}/acp.txt --index=${outputdir}/index.txt --bvecs=${outputdir}/bvecs_eddy --bvals=${outputdir}/bvals --topup=${outputdir}/topup_mouse_output_2b0 --out=${outputdir}/data_gibbs_eddy --verbose`
-echo Jobid $jid7
+logDIR="$scriptDIR/DTI"
+mkdir -p "$logDIR"/logs{1,2,3,4,5,applytopup}
 
-#echo Queuing dtifit and final file manipulations/organisations before running NODDI and bedpostX.
-jid8=`fsl_sub -q short -l ${logDIR}/logs5 -j $jid7 /vols/Data/km/cetisca/projects/diffpostproc-exvivo-mouse-bruker7t/diffpostproc_step5_oneshell.sh ${outputdir}`
-echo Jobid $jid8
+# === STEP 1: Bruker to NIfTI conversion and organisation ===
+echo "[STEP 1] Converting and organising Bruker files..."
+jid1=$(fsl_sub -q short -N "dti_step1_${subj}" -l "$logDIR/logs1" \
+  /vols/Data/km/cetisca/projects/diffpostproc-exvivo-mouse-bruker7t/diffpostproc_step1_oneshell.sh \
+  "$inputdir" "$shell1" "$blipDown" "$outputdir")
+echo "  → Job ID: $jid1"
 
+# === STEP 2: Gibbs ringing correction ===
+echo "[STEP 2] Running Gibbs ringing correction..."
+jid2=$(fsl_sub -q short -N "dti_step2_gibbs_${subj}" -j $jid1 -l "$logDIR/logs2" \
+  deGibbs3D "$outputdir/data.nii.gz" "$outputdir/data_gibbs.nii.gz")
+echo "  → Job ID: $jid2"
 
-jid9=`fsl_sub -q short -l ${logDIR}/logs5 -j $jid8 $sup_scriptDIR/diffpostproc_MeanB0calc.sh $subj`
-echo Jobid $jid8
+# === STEP 3: Pre-topup processing ===
+echo "[STEP 3] Pre-topup processing..."
+jid3=$(fsl_sub -q short -N "dti_step3_prep_${subj}" -j $jid2 -l "$logDIR/logs3" \
+  /vols/Data/km/cetisca/projects/diffpostproc-exvivo-mouse-bruker7t/diffpostproc_step3.sh "$outputdir")
+echo "  → Job ID: $jid3"
+
+# === STEP 4: Topup correction ===
+echo "[STEP 4] Running topup..."
+jid4=$(fsl_sub -q gpu_long -N "dti_step4_topup_${subj}" -j $jid3 -l "$logDIR/logs4" \
+  topup --imain="$outputdir/b0_topup" \
+        --datain="$outputdir/acp.txt" \
+        --config="$outputdir/topup_mouse.cnf" \
+        --out="$outputdir/topup_mouse_output_2b0" \
+        --fout="$outputdir/topup_mouse_field_2b0" \
+        --iout="$outputdir/topup_mouse_unwarped_images_2b0" \
+        --logout="$outputdir/topup_mouse_2b0.log" --verbose)
+echo "  → Job ID: $jid4"
+
+# === STEP 5: Post-topup orientation correction ===
+echo "[STEP 5] Correcting post-topup orientations..."
+jid5=$(fsl_sub -q short -N "dti_step5_orient_${subj}" -j $jid4 -l "$logDIR/logs4" \
+  /vols/Data/km/cetisca/projects/diffpostproc-exvivo-mouse-bruker7t/diffpostproc_step4.sh "$outputdir")
+echo "  → Job ID: $jid5"
+
+# === OPTIONAL: Applytopup ===
+if [ ! -z "$applytopup" ]; then
+  echo "[OPTIONAL] Applying topup correction to data..."
+  jid6=$(fsl_sub -q short -N "dti_applytopup_${subj}" -j $jid5 -l "$logDIR/logsapplytopup" \
+    applytopup --imain="$outputdir/data_gibbs_cp" \
+               --datain="$outputdir/acp.txt" \
+               --inindex=1 \
+               --topup="$outputdir/topup_mouse_output_2b0" \
+               --method=jac \
+               --out="$outputdir/data_gibbs_applytopup")
+  echo "  → Job ID: $jid6"
+  final_dependency=$jid6
+else
+  echo "[INFO] Applytopup not requested — skipping."
+  final_dependency=$jid5
+fi
+
+# === STEP 6: Eddy correction ===
+echo "[STEP 6] Running eddy correction..."
+jid7=$(fsl_sub -q gpu_long -N "dti_step6_eddy_${subj}" -j $final_dependency -l "$logDIR/logs4" \
+  eddy_cuda10.2 --imain="$outputdir/data_gibbs_cp" \
+                --mask="$outputdir/b0_mean_mask_test.nii.gz" \
+                --acqp="$outputdir/acp.txt" \
+                --index="$outputdir/index.txt" \
+                --bvecs="$outputdir/bvecs_eddy" \
+                --bvals="$outputdir/bvals" \
+                --topup="$outputdir/topup_mouse_output_2b0" \
+                --out="$outputdir/data_gibbs_eddy" --verbose)
+echo "  → Job ID: $jid7"
+
+# === STEP 7: Fit tensor and clean up ===
+echo "[STEP 7] Running DTI fitting and final steps..."
+jid8=$(fsl_sub -q short -N "dti_step7_dtifit_${subj}" -j $jid7 -l "$logDIR/logs5" \
+  /vols/Data/km/cetisca/projects/diffpostproc-exvivo-mouse-bruker7t/diffpostproc_step5_oneshell.sh "$outputdir")
+echo "  → Job ID: $jid8"
+
+# === STEP 8: Mean B0 calculation ===
+echo "[STEP 8] Calculating mean B0..."
+jid9=$(fsl_sub -q short -N "dti_step8_b0mean_${subj}" -j $jid8 -l "$logDIR/logs5" \
+  "$sup_scriptDIR/diffpostproc_MeanB0calc.sh" "$subj")
+echo "  → Job ID: $jid9"
 
 
 

@@ -1,71 +1,56 @@
 #!/bin/bash
 
-#This script runs through all the subject of the project and submits the DWI in the jalapeno/ood based eco-system. 
-#Uses the DWI preclinical preprocessing designed by Cristiana.
-#This is specific to one shell scripts 
+# This script submits DWI preprocessing jobs for all subjects using Cristiana's preclinical pipeline.
+# It identifies the shell and blip-up scans from Bruker structure and submits per-subject jobs.
 
 module add fsl
 module add fsl_sub
 
-#NOTE: Prequirements to check
- #Raw brukers Subject folder needs to contain DTI data in NIFTI format
-
-# Source the project settings
+# Load project settings
 source "project_settings.sh"
-
 setting=$scriptDIR/project_settings.sh
 
-#Use below to try for a subject
-#subjlist="20221115_180439_MYFR_150_1a_noCA_MYFR_T2W_MPM_MTR_Diffusion_1_1"
+# Prepare log directory for this script
+logDIR="$scriptDIR/logs/DTI"
+mkdir -p "$logDIR"
 
-
-#--------------------------------------------------------
-
-#For loop for each subject
+# For loop for each subject
 for subj in $subjlist; do
 
-#Checking Folder and ensureing correct DTI acquisition is name
-for a in {1..90}; do
-    # Define the path to the 'acqp' file
+  # Identify shell1 and blipup from acqp files
+  for a in {1..90}; do
     filePath="${projectDIR}/${projectname}_rawbrukers/${subj}/${a}/acqp"
-
-    # Check if the file exists before attempting to read from it
     if [ -f "$filePath" ]; then
-        # The file exists, read the 13th line
-        name=$(sed -n '13p' "$filePath" 2>/dev/null)
-
-        # Check if 'name' contains 'DtiEpi_12_b0'
-        if [[ "$name" == *"DtiEpi_b0_BD"* ]]; then
-            blipup=$a
-        fi
-
-        if [[ "$name" == *"DtiEpi_b2500_BU_30Dir"* ]]; then
-            #echo "Folder $a contains the phrase 'DtiEpi_12_b2.5k' in its 'acqp' file."
-            shell1=$a
-
-        fi
-   #else
-        #echo "File $filePath does not exist."
+      name=$(sed -n '13p' "$filePath" 2>/dev/null)
+      if [[ "$name" == *"DtiEpi_b0_BD"* ]]; then
+        blipup=$a
+      fi
+      if [[ "$name" == *"DtiEpi_b2500_BU_30Dir"* ]]; then
+        shell1=$a
+      fi
     fi
+  done
+
+  # Define output directory
+  TaDIR=$projectDIR/${projectname}_preprocessing/$subj/DTI_processed
+  [ -d "$TaDIR" ] && rm -rf "$TaDIR"
+  mkdir -p "$TaDIR"
+
+  # Log file for this subject
+  subj_log="$logDIR/DTI/dti_pipeline_${subj}.log"
+
+  echo "[INFO] Submitting DTI processing for subject: $subj"
+  echo "[INFO] shell1=$shell1, blipup=$blipup" > "$subj_log"
+
+  bash $sup_scriptDIR/diffpostproc_pipeline_full_oneshell_MSK.sh \
+    "$rawBruDIR/$subj" "$shell1" "$blipup" "$TaDIR" "$setting" >> "$subj_log" 2>&1
+
+  if [ $? -ne 0 ]; then
+    echo "[ERROR] DTI pipeline failed for $subj. Check log: $subj_log"
+  else
+    echo "[SUCCESS] DTI pipeline completed for $subj. Log: $subj_log"
+  fi
+
 done
 
-#Define target directory: 
-TaDIR=$projectDIR/${projectname}_preprocessing/$subj/DTI_processed
-
-# Remove the directory if it exists - as rerunning of script in existing results leads to error
-[ -d "$TaDIR" ] && rm -rf "$TaDIR"
-
-mkdir -p $TaDIR
-
-#===Running pipeline for specific subject
-
-echo "running dwi processing for $subj"
-
-$sup_scriptDIR/diffpostproc_pipeline_full_oneshell_MSK.sh $rawBruDIR/$subj $shell1 $blipup $TaDIR $setting
-
-done 
-
-echo "done"
-
-
-
+echo "All DTI processing jobs submitted. Check logs in $logDIR."
