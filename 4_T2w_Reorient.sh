@@ -32,7 +32,7 @@ orient_corr () {
 for subj in $subjlist; do
   echo "[INFO] Processing subject: $subj"
 
-  t2scan=$(grep -n "T2w" "$rawBruDIR/acquisition_order_${subj}.txt" | cut -d':' -f1)
+ t2scan=$(grep "T2w" "$rawBruDIR/acquisition_order_${subj}.txt" | awk '{print $1}')
 
   if [ -z "$t2scan" ]; then
     echo "[WARNING] No T2w scan found for $subj"
