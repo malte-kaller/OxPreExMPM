@@ -6,6 +6,29 @@ source "project_settings.sh"
 # Define subject list
 subjlist="20250224_084029_MYRD5_1b_MyReach_T2w_DTI_MPM_1_1"
 
+# Orientation correction function
+orient_corr () {
+  input_file="$1"
+
+  echo "[INFO] Reorienting: $input_file"
+
+  # Clear existing orientation info
+  fslorient -deleteorient "$input_file"
+
+  # Correct orientation: preserve L/R, flip A/P and S/I
+  fslswapdim "$input_file" RL AP SI "$input_file"
+
+  # Set sform and qform codes
+  fslorient -copysform2qform "$input_file"
+  fslorient -setsformcode 1 "$input_file"
+  fslorient -setqformcode 1 "$input_file"
+
+  # Optional: standard reorientation
+  fslreorient2std "$input_file" "$input_file"
+
+  echo "[INFO] Reorientation complete."
+}
+
 for subj in $subjlist; do
   echo "[INFO] Processing subject: $subj"
 
@@ -16,7 +39,12 @@ for subj in $subjlist; do
     continue
   fi
 
-  inputfile="$rawBruDIR/$subj/$t2scan/pdata/1/nifti/"*_1.nii
+  inputfile=$(ls "$rawBruDIR/$subj/$t2scan/pdata/1/nifti/"*_1.nii 2>/dev/null)
+  if [ ! -f "$inputfile" ]; then
+    echo "[ERROR] T2w NIfTI file not found for $subj"
+    continue
+  fi
+
   outputfolder="$procDIR/$subj/T2w_reorientated"
   mkdir -p "$outputfolder"
 
@@ -25,15 +53,6 @@ for subj in $subjlist; do
 
   outputfile="$outputfolder/T2w.nii"
   gzip -f "$outputfile"
-
-  orient_corr () {
-    fslorient -deleteorient "$1"
-    fslswapdim "$1" z -y x "$1"
-    fslorient -setsform 0.1 0 0 0 0 0.1 0 0 0 0 0.1 0 0 0 0 1 "$1"
-    fslorient -copysform2qform "$1"
-    fslorient -setsformcode 1 "$1"
-    fslorient -setqformcode 1 "$1"
-  }
 
   orient_corr "${outputfile}.gz"
 done
