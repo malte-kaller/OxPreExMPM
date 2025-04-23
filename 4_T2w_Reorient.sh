@@ -11,8 +11,8 @@ orient_corr () {
   local file="$1"
   echo "[INFO] Reorienting: $file"
 
-  # Ensure sform/qform matrices exist (identity)
-  fslorient -resetorient "$file"
+  # Delete any existing orientation (safe reset)
+  fslorient -deleteorient "$file"
 
   # Apply axis swap: z -y x
   fslswapdim "$file" z -y x "$file"
