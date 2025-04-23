@@ -8,25 +8,25 @@ subjlist="20250224_084029_MYRD5_1b_MyReach_T2w_DTI_MPM_1_1"
 
 # Orientation correction function
 orient_corr () {
-  input_file="$1"
+  local file="$1"
+  echo "[INFO] Reorienting: $file"
 
-  echo "[INFO] Reorienting: $input_file"
+  # Ensure sform/qform matrices exist (identity)
+  fslorient -resetorient "$file"
 
-  # Clear existing orientation info
-  fslorient -deleteorient "$input_file"
+  # Apply axis swap: z -y x
+  fslswapdim "$file" z -y x "$file"
 
-  # Correct orientation: preserve L/R, flip A/P and S/I
-  fslswapdim "$input_file" RL AP SI "$input_file"
+  # Set new voxel scaling and affine matrix
+  fslorient -setsform 0.1 0 0 0  \
+                        0 0.1 0 0  \
+                        0 0 0.1 0  \
+                        0 0 0 1 "$file"
 
-  # Set sform and qform codes
-  fslorient -copysform2qform "$input_file"
-  fslorient -setsformcode 1 "$input_file"
-  fslorient -setqformcode 1 "$input_file"
-
-  # Optional: standard reorientation
-  fslreorient2std "$input_file" "$input_file"
-
-  echo "[INFO] Reorientation complete."
+  # Copy to qform and activate both codes
+  fslorient -copysform2qform "$file"
+  fslorient -setsformcode 1 "$file"
+  fslorient -setqformcode 1 "$file"
 }
 
 for subj in $subjlist; do
