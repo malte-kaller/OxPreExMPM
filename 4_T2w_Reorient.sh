@@ -15,7 +15,7 @@ orient_corr () {
   fslorient -deleteorient "$file"
 
   # Apply axis swap: z -y x
-  fslswapdim "$file" z -y -x "$file"
+  fslswapdim "$file" -z -y -x "$file"
 
   # Set new voxel scaling and affine matrix
   fslorient -setsform 0.1 0 0 0  \
