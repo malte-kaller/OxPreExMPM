@@ -17,10 +17,15 @@ source $5
 shift 5
 
 #================= Local debugging =======================
-#Test change
+    #Creating limited subjects: 
+    subjlist="20250224_084029_MYRD5_1b_MyReach_T2w_DTI_MPM_1_1
+    20250224_204529_MYRD5_1e_MyReach_T2w_DTI_MPM_2_1_5"
 
+    #Running locally added scripts to problem solve my own issues
+    DIRscriptDIR=$scriptDIR/DTI_7TExVi_scripts
 
-# Optional flag
+# Optional flag for applytopup
+# (if not provided, the script will not run applytopup)
 applytopup=""
 
 while [ ! -z "$1" ]; do
@@ -43,7 +48,7 @@ mkdir -p "$logDIR"/logs{1,2,3,4,5,applytopup}
 # === STEP 1: Bruker to NIfTI conversion and organisation ===
 echo "[STEP 1] Converting and organising Bruker files..."
 jid1=$(fsl_sub -q short -N "dti_step1_${subj}" -l "$logDIR/logs1" \
-  /vols/Data/km/cetisca/projects/diffpostproc-exvivo-mouse-bruker7t/diffpostproc_step1_oneshell.sh \
+  $DIRscriptDI/diffpostproc_step1_oneshell.sh \
   "$inputdir" "$shell1" "$blipDown" "$outputdir")
 echo "  → Job ID: $jid1"
 
