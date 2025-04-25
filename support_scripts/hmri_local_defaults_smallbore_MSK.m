@@ -261,7 +261,7 @@ hmri_def.MPMacq.TR_mtw = 24.5; % [ms]
 hmri_def.MPMacq.TR_t1w = 24.5; % [ms]
 hmri_def.MPMacq.TR_pdw = 24.5; % [ms]
 hmri_def.MPMacq.fa_mtw = 6;    % [deg]
-hmri_def.MPMacq.fa_t1w = 21;   % [deg]
+hmri_def.MPMacq.fa_t1w = 35;   % [deg]
 hmri_def.MPMacq.fa_pdw = 6;    % [deg]
 hmri_def.MPMacq.tag    = 'v2k';
 
