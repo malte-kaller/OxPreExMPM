@@ -42,7 +42,7 @@ for subj in $subjlist; do
   echo "[INFO] Submitting DTI processing for subject: $subj"
   echo "[INFO] shell1=$shell1, blipup=$blipup" > "$subj_log"
 
-  bash $sup_scriptDIR/diffpostproc_pipeline_full_oneshell_MSK.sh \
+  bash $sup_scriptDIR/diffpostproc_pipeline_full_oneshell_MSK_local.sh \
     "$rawBruDIR/$subj" "$shell1" "$blipup" "$TaDIR" "$setting" >> "$subj_log" 2>&1
 
   if [ $? -ne 0 ]; then
