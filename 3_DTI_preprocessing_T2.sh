@@ -11,9 +11,9 @@ source "project_settings.sh"
 setting=$scriptDIR/project_settings.sh
 
 # For debugging steps: 
- #Creating limited subjects: 
-    subjlist="20250224_084029_MYRD5_1b_MyReach_T2w_DTI_MPM_1_1
-    20250224_204529_MYRD5_1e_MyReach_T2w_DTI_MPM_2_1_5"
+# Creating limited subjects:
+subjlist="20250224_084029_MYRD5_1b_MyReach_T2w_DTI_MPM_1_1
+20250224_204529_MYRD5_1e_MyReach_T2w_DTI_MPM_2_1_5"
 
 # Prepare log directory for this script
 logDIR="$scriptDIR/logs/DTI"
@@ -42,10 +42,9 @@ for subj in $subjlist; do
   mkdir -p "$TaDIR"
 
   # Log file for this subject
-  subj_log="$logDIR/DTI/dti_pipeline_${subj}.log"
-  mkdir =p $subj_log
+  subj_log="$logDIR/dti_pipeline_${subj}.log"
+  mkdir -p "$(dirname "$subj_log")"  # Not strictly necessary here, but safe
 
-  
   echo "[INFO] Submitting DTI processing for subject: $subj"
   echo "[INFO] shell1=$shell1, blipup=$blipup" > "$subj_log"
 
