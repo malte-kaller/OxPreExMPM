@@ -43,7 +43,9 @@ for subj in $subjlist; do
 
   # Log file for this subject
   subj_log="$logDIR/DTI/dti_pipeline_${subj}.log"
+  mkdir =p $subj_log
 
+  
   echo "[INFO] Submitting DTI processing for subject: $subj"
   echo "[INFO] shell1=$shell1, blipup=$blipup" > "$subj_log"
 
