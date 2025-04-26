@@ -17,10 +17,7 @@ source $5
 shift 5
 
 #================= Local debugging =======================
-    #Creating limited subjects: 
-    subjlist="20250224_084029_MYRD5_1b_MyReach_T2w_DTI_MPM_1_1
-    20250224_204529_MYRD5_1e_MyReach_T2w_DTI_MPM_2_1_5"
-
+   
     #Running locally added scripts to problem solve my own issues
     DIRscriptDIR=$scriptDIR/DTI_7TExVi_scripts
 
