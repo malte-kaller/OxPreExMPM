@@ -19,7 +19,7 @@ shift 5
 #================= Local debugging =======================
    
     #Running locally added scripts to problem solve my own issues
-    DIRscriptDIR=$scriptDIR/DTI_7TExVi_scripts
+    DTIscriptDIR=$scriptDIR/DTI_7TExVi_scripts
 
 # Optional flag for applytopup
 # (if not provided, the script will not run applytopup)
@@ -45,7 +45,7 @@ mkdir -p "$logDIR"/logs{1,2,3,4,5,applytopup}
 # === STEP 1: Bruker to NIfTI conversion and organisation ===
 echo "[STEP 1] Converting and organising Bruker files..."
 jid1=$(fsl_sub -q short -N "dti_step1_${subj}" -l "$logDIR/logs1" \
-  $DIRscriptDI/diffpostproc_step1_oneshell.sh \
+  $DTIscriptDIR/diffpostproc_step1_oneshell.sh \
   "$inputdir" "$shell1" "$blipDown" "$outputdir")
 echo "  → Job ID: $jid1"
 
