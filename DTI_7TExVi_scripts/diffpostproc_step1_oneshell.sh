@@ -3,6 +3,7 @@ inputdir=$1
 shell1=$2
 blipDown=$3
 outputdir=$4
+source $5
 
 #Running locally added scripts to problem solve my own issues
     DTIscriptDIR=$scriptDIR/DTI_7TExVi_scripts
