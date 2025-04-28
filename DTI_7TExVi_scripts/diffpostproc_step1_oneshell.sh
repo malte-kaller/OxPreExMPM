@@ -45,11 +45,13 @@ echo Loading bvecs and bvals, preparing them for eddy and dtifit.
 cp ${inputdir}/${shell1}/method ${outputdir}/method_shell1
 cp ${inputdir}/${blipDown}/pdata/1/nifti/${substring}_${blipDown}_1_1.nii ${outputdir}/b0_blipDown.nii
 /vols/Data/km/cetisca/projects/diffpostproc-exvivo-mouse-bruker7t/bin/extract_bvecs_bvals_oneshell.sh ${outputdir}
-/vols/Data/km/cetisca/projects/diffpostproc-exvivo-mouse-bruker7t/bin/swapbvecs ${outputdir}/bvecs z -x y ${outputdir}/bvecs_zminxy
-/vols/Data/km/cetisca/projects/diffpostproc-exvivo-mouse-bruker7t/bin/swapbvecs ${outputdir}/bvecs_zminxy x z -y ${outputdir}/bvecs_eddy
+/vols/Data/km/cetisca/projects/diffpostproc-exvivo-mouse-bruker7t/bin/swapbvecs ${outputdir}/bvecs -z -y -x ${outputdir}/bvecs_zminxy
+/vols/Data/km/cetisca/projects/diffpostproc-exvivo-mouse-bruker7t/bin/swapbvecs ${outputdir}/bvecs_zminxy -z -y -x ${outputdir}/bvecs_eddy
 
 echo Correctly orienting data.
 cp ${outputdir}/data_merged_original.nii.gz ${outputdir}/data.nii.gz
+
+#--- not reorientating data here, as it takes this step in Step 3? 
 orient_corr ${outputdir}/data.nii.gz
 
 fslroi ${outputdir}/data.nii.gz ${outputdir}/b01 0 1
