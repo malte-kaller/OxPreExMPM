@@ -4,6 +4,9 @@ shell1=$2
 blipDown=$3
 outputdir=$4
 
+#Running locally added scripts to problem solve my own issues
+    DTIscriptDIR=$scriptDIR/DTI_7TExVi_scripts
+
 orient_corr () {
 fslorient -deleteorient $1
 fslswapdim $1 -z -y -x $1
@@ -37,16 +40,16 @@ filelist=`cat $outputdir/filenames`
 fslmerge -t ${outputdir}/data_merged_original $filelist
 
 echo Copying configuration files over.
-cp /vols/Data/km/cetisca/projects/diffpostproc-exvivo-mouse-bruker7t/masterfiles/acp.txt ${outputdir}/acp.txt
-cp /vols/Data/km/cetisca/projects/diffpostproc-exvivo-mouse-bruker7t/masterfiles/index_oneshell.txt ${outputdir}/index.txt
-cp /vols/Data/km/cetisca/projects/diffpostproc-exvivo-mouse-bruker7t/masterfiles/topup_mouse.cnf ${outputdir}/topup_mouse.cnf
+cp ${DTIscriptDIR}/masterfiles/acp.txt ${outputdir}/acp.txt
+cp ${DTIscriptDIR}/masterfiles/index_oneshell.txt ${outputdir}/index.txt
+cp ${DTIscriptDIR}/masterfiles/topup_mouse.cnf ${outputdir}/topup_mouse.cnf
 
 echo Loading bvecs and bvals, preparing them for eddy and dtifit.
 cp ${inputdir}/${shell1}/method ${outputdir}/method_shell1
 cp ${inputdir}/${blipDown}/pdata/1/nifti/${substring}_${blipDown}_1_1.nii ${outputdir}/b0_blipDown.nii
-/vols/Data/km/cetisca/projects/diffpostproc-exvivo-mouse-bruker7t/bin/extract_bvecs_bvals_oneshell.sh ${outputdir}
-/vols/Data/km/cetisca/projects/diffpostproc-exvivo-mouse-bruker7t/bin/swapbvecs ${outputdir}/bvecs -z -y -x ${outputdir}/bvecs_zminxy
-/vols/Data/km/cetisca/projects/diffpostproc-exvivo-mouse-bruker7t/bin/swapbvecs ${outputdir}/bvecs_zminxy -z -y -x ${outputdir}/bvecs_eddy
+${DTIscriptDIR}/bin/extract_bvecs_bvals_oneshell.sh ${outputdir}
+${DTIscriptDIR}/bin/swapbvecs ${outputdir}/bvecs -z -y -x ${outputdir}/bvecs_zminxy
+${DTIscriptDIR}/bin/swapbvecs ${outputdir}/bvecs_zminxy -z -y -x ${outputdir}/bvecs_eddy
 
 echo Correctly orienting data.
 cp ${outputdir}/data_merged_original.nii.gz ${outputdir}/data.nii.gz
