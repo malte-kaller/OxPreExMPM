@@ -98,20 +98,20 @@ fi
 
 # === STEP 6: Eddy correction ===
 echo "[STEP 6] Running eddy correction..."
-jid7=$(fsl_sub -q gpu_long -N "dti_step6_eddy_${subj}" -j $final_dependency -l "$logDIR/logs4" \
-  eddy_cuda10.2 --imain="$outputdir/data_gibbs_cp" \
-                --mask="$outputdir/b0_mean_mask_test.nii.gz" \
-                --acqp="$outputdir/acp.txt" \
-                --index="$outputdir/index.txt" \
-                --bvecs="$outputdir/bvecs_eddy" \
-                --bvals="$outputdir/bvals" \
-                --topup="$outputdir/topup_mouse_output_2b0" \
-                --out="$outputdir/data_gibbs_eddy" --verbose)
+jid7=$(fsl_sub --coprocessor cuda -q gpu_long -N "dti_step6_eddy_${subj}" -j $final_dependency -l "$logDIR/logs4" \
+  eddy --imain="$outputdir/data_gibbs_cp" \
+       --mask="$outputdir/b0_mean_mask_test.nii.gz" \
+       --acqp="$outputdir/acp.txt" \
+       --index="$outputdir/index.txt" \
+       --bvecs="$outputdir/bvecs_eddy" \
+       --bvals="$outputdir/bvals" \
+       --topup="$outputdir/topup_mouse_output_2b0" \
+       --out="$outputdir/data_gibbs_eddy" --verbose)
 echo "  → Job ID: $jid7"
 
 # === STEP 7: Fit tensor and clean up ===
 echo "[STEP 7] Running DTI fitting and final steps..."
-jid8=$(fsl_sub --coprocessor cuda -q short -N "dti_step7_dtifit_${subj}" -j $jid7 -l "$logDIR/logs5" \
+jid8=$(fsl_sub --coprocessor cuda -q gpu_long -N "dti_step7_dtifit_${subj}" -j $jid7 -l "$logDIR/logs5" \
   $DTIscriptDIR/diffpostproc_step5_oneshell.sh "$outputdir")
 echo "  → Job ID: $jid8"
 
