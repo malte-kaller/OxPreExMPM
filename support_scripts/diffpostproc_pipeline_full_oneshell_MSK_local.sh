@@ -46,7 +46,7 @@ mkdir -p "$logDIR"/logs{1,2,3,4,5,applytopup}
 echo "[STEP 1] Converting and organising Bruker files..."
 jid1=$(fsl_sub -q short -N "dti_step1_${subj}" -l "$logDIR/logs1" \
   $DTIscriptDIR/diffpostproc_step1_oneshell.sh \
-  "$inputdir" "$shell1" "$blipDown" "$outputdir")
+  "$inputdir" "$shell1" "$blipDown" "$outputdir" "$5")
 echo "  → Job ID: $jid1"
 
 # === STEP 2: Gibbs ringing correction ===
