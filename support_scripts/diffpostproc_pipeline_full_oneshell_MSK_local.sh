@@ -14,9 +14,9 @@ shell1=$2
 blipDown=$3
 outputdir=$4
 source $5
+settings_file=$5 
 shift 5
 
-settings_file=$5 
 
 #================= Local debugging =======================
    
