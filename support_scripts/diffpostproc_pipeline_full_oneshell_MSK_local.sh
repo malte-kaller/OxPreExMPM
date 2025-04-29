@@ -16,6 +16,8 @@ outputdir=$4
 source $5
 shift 5
 
+settings_file=$5 
+
 #================= Local debugging =======================
    
     #Running locally added scripts to problem solve my own issues
@@ -46,7 +48,7 @@ mkdir -p "$logDIR"/logs{1,2,3,4,5,applytopup}
 echo "[STEP 1] Converting and organising Bruker files..."
 jid1=$(fsl_sub -q short -N "dti_step1_${subj}" -l "$logDIR/logs1" \
   $DTIscriptDIR/diffpostproc_step1_oneshell.sh \
-  "$inputdir" "$shell1" "$blipDown" "$outputdir" "$5")
+  "$inputdir" "$shell1" "$blipDown" "$outputdir" "$settings_file")
 echo "  → Job ID: $jid1"
 
 # === STEP 2: Gibbs ringing correction ===
