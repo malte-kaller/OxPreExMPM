@@ -1,92 +1,50 @@
-#!/bin/bash
-
-# === Input ===
+#### bvals
 foldername=$1
 
-# === Step 1: Extract all bvals from method file ===
-sed -n '/PVM_DwEffBval/,/PVM_DwGradVec/{
-  /PVM_DwEffBval/d  # Remove the line containing 'PVM_DwEffBval'
-  /PVM_DwGradVec/d  # Remove the line containing 'PVM_DwGradVec'
-  p                 # Print the remaining lines
-}' ${foldername}/method_shell1 \
-| grep -E '^[0-9]+(\.[0-9]+)?$' > ${foldername}/bvals_shell1_raw
+# === Extract bvals ===
+grep -A8 PVM_DwEffBval= ${foldername}/method_shell1 | tail -n+2 | tr " " "\n" | sed '/^[[:space:]]*$/d' > ${foldername}/bvals_shell1_raw
 
-# === Step 2: Reassign lowest 3 bvals to positions 1, 12, 23 ===
-mapfile -t all_bvals < ${foldername}/bvals_shell1_raw
+# Sort bvals and extract the 3 lowest values
+low_bvals=$(sort -n ${foldername}/bvals_shell1_raw | head -n 3)
 
-# Get the 3 lowest bvals directly from the file
-low_bvals=($(sort -n ${foldername}/bvals_shell1_raw | head -n 3))
-low_i=0
+# Create the corrected bvals file with 3 lowest values at positions 1, 12, and 23
 corrected_bvals=()
-
-# Create an associative array for faster lookup of low_bvals
-declare -A low_bvals_map
-for bval in "${low_bvals[@]}"; do
-  low_bvals_map["$bval"]=1
-done
-
+low_bvals_array=($low_bvals)
+low_index=0
 for i in $(seq 1 33); do
   if [[ "$i" == "1" || "$i" == "12" || "$i" == "23" ]]; then
-    corrected_bvals+=("${low_bvals[$low_i]}")
-    ((low_i++))
+    corrected_bvals+=("${low_bvals_array[$low_index]}")
+    ((low_index++))
   else
-    for j in "${!all_bvals[@]}"; do
-      b=${all_bvals[$j]}
-      if [[ -z "${low_bvals_map[$b]}" ]]; then
-        corrected_bvals+=("$b")
-        unset 'all_bvals[$j]'
-        break
-      fi
-    done
+    corrected_bvals+=("$(sed -n "${i}p" ${foldername}/bvals_shell1_raw)")
   fi
 done
 
-# Save to FSL-style bvals
+# Save corrected bvals to file
 printf "%s " "${corrected_bvals[@]}" > ${foldername}/bvals
 
 
-# === Step 3: Extract raw bvecs (30 vectors) ===
-sed -n '/##\$PVM_DwDir=(/,/##\$PVM_DwDgSwitch/{
-  /PVM_DwDir/d
-  /##\$PVM_DwDgSwitch/d
-  p
-}' ${foldername}/method_shell1 \
-| tr -s " " "\n" \
-| grep -E '^-?[0-9.]+' \
-| awk 'ORS=NR%3?" ":"\n"' > ${foldername}/bvecs_shell1_raw  # 30 lines, one X Y Z per line
+# === Extract bvecs ===
+sed -n '/##\$PVM_DwDir=(/,/##\$PVM_DwDgSwitch/{ /PVM_DwDir/d; /##\$PVM_DwDgSwitch/d; p }' ${foldername}/method_shell1 \
+  | tr " " "\n" | sed '/^[[:space:]]*$/d' | tr -d " \t\r" | tr "\n" " " \
+  | sed -e "s/\([^\ ]*\ [^\ ]*\ [^\ ]*\)\ /\1\\`echo -e '\n\r'`/g" | tr "\r" "\n" | sed '/^[[:space:]]*$/d' > ${foldername}/bvecs_shell1_raw
 
-# === Step 4: Transpose to FSL 3-row format ===
-# (Rows: Xs, Ys, Zs)
-awk '{print $1}' ${foldername}/bvecs_shell1_raw | paste -sd ' ' - > ${foldername}/bvecs_x
-awk '{print $2}' ${foldername}/bvecs_shell1_raw | paste -sd ' ' - > ${foldername}/bvecs_y
-awk '{print $3}' ${foldername}/bvecs_shell1_raw | paste -sd ' ' - > ${foldername}/bvecs_z
-cat ${foldername}/bvecs_x ${foldername}/bvecs_y ${foldername}/bvecs_z > ${foldername}/bvecs_shell1
-
-# === Step 5: Insert 0s at columns 1, 12, 23 in all three rows ===
-bvecs_out=${foldername}/bvecs_fixed
+# Insert 0 vectors at positions 1, 12, and 23
+bvecs_out=${foldername}/bvecs_shell1
 rm -f $bvecs_out
 
-insert_pos=(0 11 22)  # 0-based indices for volumes 1,12,23
-
+insert_pos=(1 12 23)  # 1-based indices for volumes 1, 12, 23
+line_num=1
 while read -r line; do
-  read -a vals <<< "$line"
-  new_row=()
-  for i in $(seq 0 ${#vals[@]}); do
-    if [[ " ${insert_pos[*]} " =~ " $i " ]]; then
-      new_row+=("0")
-    fi
-    if [[ $i -lt ${#vals[@]} ]]; then
-      new_row+=("${vals[$i]}")
-    fi
-  done
-  printf "%s " "${new_row[@]}" >> $bvecs_out
-  echo "" >> $bvecs_out
-done < ${foldername}/bvecs_shell1
+  if [[ " ${insert_pos[*]} " =~ " $line_num " ]]; then
+    echo "0 0 0" >> $bvecs_out  # Insert 0 vector
+  fi
+  echo "$line" >> $bvecs_out
+  ((line_num++))
+done < ${foldername}/bvecs_shell1_raw
 
-# Final bvecs file in correct format
-cp ${bvecs_out} ${foldername}/bvecs
+# Transpose bvecs to FSL 3-row format
+/vols/Data/km/cetisca/projects/diffpostproc-exvivo-mouse-bruker7t/bin/transpose_bvecs.sh ${foldername}/bvecs_shell1 > ${foldername}/bvecs
 
 # === Cleanup ===
-rm ${foldername}/bvals_shell1_raw ${foldername}/bvecs_shell1_raw \
-   ${foldername}/bvecs_shell1 ${foldername}/bvecs_x ${foldername}/bvecs_y \
-   ${foldername}/bvecs_z ${bvecs_out}
+rm ${foldername}/bvals_shell1_raw ${foldername}/bvecs_shell1_raw ${foldername}/bvecs_shell1
