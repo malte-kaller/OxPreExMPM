@@ -5,38 +5,45 @@ foldername=$1
 
 # === Step 1: Extract all bvals from method file ===
 sed -n '/PVM_DwEffBval/,/PVM_DwGradVec/{
-  /PVM_DwEffBval/d
-  /PVM_DwGradVec/d
-  p
+  /PVM_DwEffBval/d  # Remove the line containing 'PVM_DwEffBval'
+  /PVM_DwGradVec/d  # Remove the line containing 'PVM_DwGradVec'
+  p                 # Print the remaining lines
 }' ${foldername}/method_shell1 \
-| tr -s " " "\n" \
-| grep -E '^[0-9.]+' > ${foldername}/bvals_shell1_raw
+| grep -E '^[0-9]+(\.[0-9]+)?$' > ${foldername}/bvals_shell1_raw
 
 # === Step 2: Reassign lowest 3 bvals to positions 1, 12, 23 ===
 mapfile -t all_bvals < ${foldername}/bvals_shell1_raw
 
-# Get the 3 lowest bvals
-low_bvals=($(printf "%s\n" "${all_bvals[@]}" | sort -n | head -n 3))
+# Get the 3 lowest bvals directly from the file
+low_bvals=($(sort -n ${foldername}/bvals_shell1_raw | head -n 3))
 low_i=0
 corrected_bvals=()
+
+# Create an associative array for faster lookup of low_bvals
+declare -A low_bvals_map
+for bval in "${low_bvals[@]}"; do
+  low_bvals_map["$bval"]=1
+done
 
 for i in $(seq 1 33); do
   if [[ "$i" == "1" || "$i" == "12" || "$i" == "23" ]]; then
     corrected_bvals+=("${low_bvals[$low_i]}")
     ((low_i++))
   else
-    for b in "${all_bvals[@]}"; do
-      if [[ ! " ${low_bvals[*]} " =~ " $b " ]]; then
+    for j in "${!all_bvals[@]}"; do
+      b=${all_bvals[$j]}
+      if [[ -z "${low_bvals_map[$b]}" ]]; then
         corrected_bvals+=("$b")
-        all_bvals=("${all_bvals[@]/$b}")
+        unset 'all_bvals[$j]'
         break
       fi
     done
   fi
 done
 
-# Save to FSL-style bvals (1 line, space-separated)
+# Save to FSL-style bvals
 printf "%s " "${corrected_bvals[@]}" > ${foldername}/bvals
+
 
 # === Step 3: Extract raw bvecs (30 vectors) ===
 sed -n '/##\$PVM_DwDir=(/,/##\$PVM_DwDgSwitch/{
