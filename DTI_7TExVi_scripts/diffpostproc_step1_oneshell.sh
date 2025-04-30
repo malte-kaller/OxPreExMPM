@@ -48,7 +48,7 @@ cp ${DTIscriptDIR}/masterfiles/topup_mouse.cnf ${outputdir}/topup_mouse.cnf
 echo Loading bvecs and bvals, preparing them for eddy and dtifit.
 cp ${inputdir}/${shell1}/method ${outputdir}/method_shell1
 cp ${inputdir}/${blipDown}/pdata/1/nifti/${substring}_${blipDown}_1_1.nii ${outputdir}/b0_blipDown.nii
-${DTIscriptDIR}/bin/extract_bvecs_bvals_oneshell_MSK.sh ${outputdir}
+${DTIscriptDIR}/bin/extract_bvecs_bvals_oneshell.sh ${outputdir}
 ${DTIscriptDIR}/bin/swapbvecs ${outputdir}/bvecs -z -y -x ${outputdir}/bvecs_zminxy
 ${DTIscriptDIR}/bin/swapbvecs ${outputdir}/bvecs_zminxy -z -y -x ${outputdir}/bvecs_eddy
 
