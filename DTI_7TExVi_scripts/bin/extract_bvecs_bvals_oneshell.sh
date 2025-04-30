@@ -18,10 +18,10 @@ sed -n '/##$PVM_DwDir=(/,/##$PVM_DwDgSwitch/{ /PVM_DwDir/d; /##$PVM_DwDgSwitch/d
 ##sed  -i '1 i\0 0 0' ${foldername}/bvecs_shell1
 ##sed  -i '16 a\0 0 0' ${foldername}/bvecs_shell1
 
-#Harcode my MSK to fit the new line:
+#Harcode my MSK to fit the new line - adjusted:
 sed -i '1 i\0 0 0' ${foldername}/bvecs_shell1   # Insert 1st b=0
-sed -i '12 a\0 0 0' ${foldername}/bvecs_shell1   # Insert 2nd b=0
-sed -i '22 a\0 0 0' ${foldername}/bvecs_shell1  # Insert 3rd b=0 (after 16 DWI)
+sed -i '13 a\0 0 0' ${foldername}/bvecs_shell1   # Insert 2nd b=0
+sed -i '23 a\0 0 0' ${foldername}/bvecs_shell1  # Insert 3rd b=0 (after 16 DWI)
 
 cat ${foldername}/bvecs_shell1 > ${foldername}/bvecs_temp
 
