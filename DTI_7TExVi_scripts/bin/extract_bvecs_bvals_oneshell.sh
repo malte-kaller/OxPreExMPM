@@ -1,7 +1,7 @@
 #### bvals
 foldername=$1
 
-grep -A8 PVM_DwEffBval= ${foldername}/method_shell1 | tail -n+2 | tr " " "\n" | sed '/^[[:space:]]*$/d' | sed -n '2{h; d}; 17{p; x;}; p' | tr -d " \t\r" > ${foldername}/bvals_shell1
+#grep -A8 PVM_DwEffBval= ${foldername}/method_shell1 | tail -n+2 | tr " " "\n" | sed '/^[[:space:]]*$/d' | sed -n '2{h; d}; 17{p; x;}; p' | tr -d " \t\r" > ${foldername}/bvals_shell1 
 sed -n '/PVM_DwEffBval/,/PVM_DwGradVec/{ /PVM_DwEffBval/d; /PVM_DwGradVec/d; p }' ${foldername}/method_shell1 | tr " " "\n" | sed '/^[[:space:]]*$/d' | sed -n '2{h; d}; 17{p; x;}; p' | tr -d " \t\r"  > ${foldername}/bvals_shell1
 
 
@@ -20,8 +20,8 @@ sed -n '/##$PVM_DwDir=(/,/##$PVM_DwDgSwitch/{ /PVM_DwDir/d; /##$PVM_DwDgSwitch/d
 
 #Harcode my MSK to fit the new line:
 sed -i '1 i\0 0 0' ${foldername}/bvecs_shell1   # Insert 1st b=0
-sed -i '1 i\0 0 0' ${foldername}/bvecs_shell1   # Insert 2nd b=0
-sed -i '17 a\0 0 0' ${foldername}/bvecs_shell1  # Insert 3rd b=0 (after 16 DWI)
+sed -i '12 a\0 0 0' ${foldername}/bvecs_shell1   # Insert 2nd b=0
+sed -i '22 a\0 0 0' ${foldername}/bvecs_shell1  # Insert 3rd b=0 (after 16 DWI)
 
 cat ${foldername}/bvecs_shell1 > ${foldername}/bvecs_temp
 
