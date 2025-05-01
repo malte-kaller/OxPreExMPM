@@ -52,7 +52,8 @@ rm ${foldername}/bvals_original.txt
 echo "[INFO] Extracting bvecs..."
 
 # === Step 3: Extract exactly 33*3 values from PVM_DwGradVec ===
-grep -A 99 "##\$PVM_DwGradVec=( 33, 3 )" ${foldername}/method_shell1 \
+sed -n '/##\$PVM_DwGradVec=( 33, 3 )/,/^##/p' ${foldername}/method_shell1 \
+| tr -s " " "\n" \
 | grep -E '^-?[0-9.]+' \
 | head -n 99 \
 | awk 'ORS=NR%3?" ":"\n"' > ${foldername}/bvecs_all.txt
