@@ -8,16 +8,16 @@ fi
 
 echo "[INFO] Extracting bvals..."
 
-# === Step 1: Extract 33 bvals from method file ===
+# === Step 1: Extract 33 bvals ===
 sed -n '/PVM_DwEffBval/,/PVM_DwGradVec/{
   /PVM_DwEffBval/d
   /PVM_DwGradVec/d
   p
-}' ${foldername}/method_shell1 \
+}' "${foldername}/method_shell1" \
 | tr -s " " "\n" \
-| grep -E '^[0-9.]+' > ${foldername}/bvals_original.txt
+| grep -E '^[0-9.]+' > "${foldername}/bvals_original.txt"
 
-mapfile -t bvals < ${foldername}/bvals_original.txt
+mapfile -t bvals < "${foldername}/bvals_original.txt"
 
 # === Step 2: Move lowest 3 bvals to volumes 1, 12, 23 ===
 low_bvals=($(printf "%s\n" "${bvals[@]}" | sort -n | head -n 3))
@@ -46,40 +46,40 @@ for i in $(seq 0 32); do
   fi
 done
 
-printf "%s " "${final_bvals[@]}" > ${foldername}/bvals
-rm ${foldername}/bvals_original.txt
+printf "%s " "${final_bvals[@]}" > "${foldername}/bvals"
+rm "${foldername}/bvals_original.txt"
 
 echo "[INFO] Extracting bvecs..."
 
-# === Step 3: Extract exactly 33*3 values from PVM_DwGradVec ===
-sed -n '/##\$PVM_DwGradVec=( 33, 3 )/,/^##/p' ${foldername}/method_shell1 \
+# === Step 3: Extract full PVM_DwGradVec block ===
+sed -n '/##\$PVM_DwGradVec=( 33, 3 )/,/^##/p' "${foldername}/method_shell1" \
 | tr -s " " "\n" \
 | grep -E '^-?[0-9.]+' \
 | head -n 99 \
-| awk 'ORS=NR%3?" ":"\n"' > ${foldername}/bvecs_all.txt
+| awk 'ORS=NR%3?" ":"\n"' > "${foldername}/bvecs_all.txt"
 
 if [[ ! -s ${foldername}/bvecs_all.txt ]]; then
-  echo "Error: bvecs_all.txt is empty — extraction failed."
+  echo "[ERROR] bvecs_all.txt is empty — check extraction pattern."
   exit 1
 fi
 
-# === Step 4: Override volumes 1, 12, 23 with (0 0 0) ===
+# === Step 4: Replace vectors at 1, 12, 23 with (0 0 0) ===
 insert_zero_indices=(0 11 22)
-mapfile -t raw_vecs < ${foldername}/bvecs_all.txt
+mapfile -t raw_vecs < "${foldername}/bvecs_all.txt"
 
-adjusted_vecs=("${raw_vecs[@]}")
+if [[ ${#raw_vecs[@]} -ne 33 ]]; then
+  echo "[ERROR] Expected 33 gradient vectors, got ${#raw_vecs[@]}"
+  exit 1
+fi
 
-# Force (0 0 0) only at target indices
 for idx in "${insert_zero_indices[@]}"; do
-  adjusted_vecs[$idx]="0 0 0"
+  raw_vecs[$idx]="0 0 0"
 done
 
-# === Step 5: Transpose into FSL bvecs format (3 rows) ===
-bvecs_x=()
-bvecs_y=()
-bvecs_z=()
+# === Step 5: Transpose to FSL bvecs format ===
+bvecs_x=(); bvecs_y=(); bvecs_z=()
 
-for vec in "${adjusted_vecs[@]}"; do
+for vec in "${raw_vecs[@]}"; do
   read -r x y z <<< "$vec"
   bvecs_x+=("$x")
   bvecs_y+=("$y")
@@ -88,14 +88,13 @@ done
 
 {
   printf "%s " "${bvecs_x[@]}"
-  echo ""
+  echo
   printf "%s " "${bvecs_y[@]}"
-  echo ""
+  echo
   printf "%s " "${bvecs_z[@]}"
-  echo ""
-} > ${foldername}/bvecs
+  echo
+} > "${foldername}/bvecs"
 
-# === Cleanup ===
-#rm ${foldername}/bvecs_all.txt
+rm "${foldername}/bvecs_all.txt"
 
-echo "[SUCCESS] Written: ${foldername}/bvals and ${foldername}/bvecs"
+echo "[SUCCESS] bvals and bvecs written to: ${foldername}/"
