@@ -63,24 +63,18 @@ if [[ ! -s ${foldername}/bvecs_all.txt ]]; then
   exit 1
 fi
 
-# === Step 4: Apply (0 0 0) at positions 1, 12, 23 ===
+# === Step 4: Override volumes 1, 12, 23 with (0 0 0) ===
 insert_zero_indices=(0 11 22)
 mapfile -t raw_vecs < ${foldername}/bvecs_all.txt
-adjusted_vecs=()
 
-for i in $(seq 0 32); do
-  if [[ " ${insert_zero_indices[*]} " =~ " $i " ]]; then
-    adjusted_vecs+=("0 0 0")
-  elif [[ "${raw_vecs[$i]}" =~ ^0[[:space:]]+0[[:space:]]+0$ ]]; then
-    # Fix unintended zeros elsewhere
-    echo "[WARNING] Volume $((i+1)) had unexpected (0 0 0) in raw data — restoring original vector!"
-    adjusted_vecs+=("1 0 0")  # Or use a default placeholder or skip error
-  else
-    adjusted_vecs+=("${raw_vecs[$i]}")
-  fi
+adjusted_vecs=("${raw_vecs[@]}")
+
+# Force (0 0 0) only at target indices
+for idx in "${insert_zero_indices[@]}"; do
+  adjusted_vecs[$idx]="0 0 0"
 done
 
-# === Step 5: Transpose into FSL bvecs (3 rows) ===
+# === Step 5: Transpose into FSL bvecs format (3 rows) ===
 bvecs_x=()
 bvecs_y=()
 bvecs_z=()
@@ -102,6 +96,6 @@ done
 } > ${foldername}/bvecs
 
 # === Cleanup ===
-rm ${foldername}/bvecs_all.txt
+#rm ${foldername}/bvecs_all.txt
 
 echo "[SUCCESS] Written: ${foldername}/bvals and ${foldername}/bvecs"
