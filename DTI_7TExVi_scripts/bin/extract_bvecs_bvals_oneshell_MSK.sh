@@ -1,9 +1,8 @@
 #!/bin/bash
 
-# Input: $1 = folder containing method_shell1
 foldername=$1
 
-# === Step 1: Extract 33 bvals from method_shell1 ===
+# === Step 1: Extract all 33 bvals ===
 sed -n '/PVM_DwEffBval/,/PVM_DwGradVec/{
   /PVM_DwEffBval/d
   /PVM_DwGradVec/d
@@ -15,9 +14,9 @@ sed -n '/PVM_DwEffBval/,/PVM_DwGradVec/{
 # === Step 2: Move 3 lowest bvals to positions 1, 12, 23 ===
 mapfile -t bvals < ${foldername}/bvals_original.txt
 low_bvals=($(printf "%s\n" "${bvals[@]}" | sort -n | head -n 3))
-target_pos=(0 11 22)  # 0-based indices for volumes 1, 12, 23
+target_pos=(0 11 22)
 
-# Remove those values from their original positions (once each)
+# Remove only 3 low-bvals from their original positions
 remaining_bvals=()
 found=0
 for b in "${bvals[@]}"; do
@@ -28,7 +27,7 @@ for b in "${bvals[@]}"; do
   remaining_bvals+=("$b")
 done
 
-# Reconstruct final bvals array
+# Reconstruct final bvals list
 final_bvals=()
 lb_i=0
 rb_i=0
@@ -42,20 +41,21 @@ for i in $(seq 0 32); do
   fi
 done
 
-# Save to final bvals file
+# Save bvals
 printf "%s " "${final_bvals[@]}" > ${foldername}/bvals
 
 # === Step 3: Extract 33 bvecs from PVM_DwGradVec ===
-sed -n '/##\$PVM_DwGradVec=( 33, 3 )/,/^##\\$/p' ${foldername}/method_shell1 \
+grep -A 99 "##\$PVM_DwGradVec=( 33, 3 )" ${foldername}/method_shell1 \
 | grep -E '^-?[0-9.]+' \
-| awk 'ORS=NR%3?" ":"\n"' > ${foldername}/bvecs_all.txt  # 33 X Y Z lines
+| head -n 99 \
+| awk 'ORS=NR%3?" ":"\n"' > ${foldername}/bvecs_all.txt
 
-# === Step 4: Transpose to 3-row FSL format ===
+# === Step 4: Transpose into 3 FSL-format rows ===
 awk '{print $1}' ${foldername}/bvecs_all.txt | paste -sd ' ' - > ${foldername}/bvecs_x
 awk '{print $2}' ${foldername}/bvecs_all.txt | paste -sd ' ' - > ${foldername}/bvecs_y
 awk '{print $3}' ${foldername}/bvecs_all.txt | paste -sd ' ' - > ${foldername}/bvecs_z
 
-# === Step 5: Zero out b=0 vector columns (positions 1, 12, 23) ===
+# === Step 5: Zero out b=0 vector positions (volumes 1, 12, 23) ===
 insert_indices=(0 11 22)
 bvecs_out=${foldername}/bvecs
 rm -f $bvecs_out
@@ -75,6 +75,6 @@ for file in ${foldername}/bvecs_x ${foldername}/bvecs_y ${foldername}/bvecs_z; d
   echo "" >> $bvecs_out
 done
 
-# === Step 6: Cleanup ===
+# === Cleanup ===
 rm ${foldername}/bvals_original.txt ${foldername}/bvecs_all.txt \
    ${foldername}/bvecs_x ${foldername}/bvecs_y ${foldername}/bvecs_z
