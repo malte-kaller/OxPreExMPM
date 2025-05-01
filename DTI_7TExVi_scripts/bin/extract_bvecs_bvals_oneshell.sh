@@ -27,4 +27,4 @@ cat ${foldername}/bvecs_shell1 > ${foldername}/bvecs_temp
 
 /vols/Data/km/cetisca/projects/diffpostproc-exvivo-mouse-bruker7t/bin/transpose_bvecs.sh ${foldername}/bvecs_temp >  ${foldername}/bvecs
 
-rm ${foldername}/bvals_shell1  ${foldername}/bvals2 ${foldername}/bvecs_temp ${foldername}/bvecs_shell1 ${foldername}/bvals_method
+#rm ${foldername}/bvals_shell1  ${foldername}/bvals2 ${foldername}/bvecs_temp ${foldername}/bvecs_shell1 ${foldername}/bvals_method
