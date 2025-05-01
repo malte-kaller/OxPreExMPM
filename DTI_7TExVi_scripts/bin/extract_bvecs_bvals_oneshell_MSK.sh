@@ -47,31 +47,31 @@ for i in $(seq 0 32); do
 done
 
 printf "%s " "${final_bvals[@]}" > "${foldername}/bvals"
-#rm "${foldername}/bvals_original.txt"
+rm "${foldername}/bvals_original.txt"
 
 echo "[INFO] Extracting bvecs..."
 
-# Step 3: Extract 33 vectors (33 x 3 = 99 values), confirmed working method
+# Step 3: Extract 33 gradient vectors (confirmed good method)
 sed -n '/##\$PVM_DwGradVec=( 33, 3 )/,/^##/p' "${foldername}/method_shell1" \
 | tr -s " " "\n" \
 | grep -E '^-?[0-9.]+' \
 | head -n 99 \
 | awk 'ORS=NR%3?" ":"\n"' > "${foldername}/bvecs_all.txt"
 
-# Step 4: Replace vectors at Vol 1, 12, 23 with 0 0 0
-insert_zero_indices=(0 11 22)
 mapfile -t raw_vecs < "${foldername}/bvecs_all.txt"
 
 if [[ ${#raw_vecs[@]} -ne 33 ]]; then
-  echo "❌ Expected 33 vectors but got ${#raw_vecs[@]}"
+  echo "❌ bvecs_all.txt contains ${#raw_vecs[@]} vectors — expected 33"
   exit 1
 fi
 
+# Step 4: Override only Volumes 1, 12, 23 with (0 0 0)
+insert_zero_indices=(0 11 22)
 for idx in "${insert_zero_indices[@]}"; do
   raw_vecs[$idx]="0 0 0"
 done
 
-# Step 5: Transpose into FSL format
+# Step 5: Transpose to 3-row FSL format
 bvecs_x=(); bvecs_y=(); bvecs_z=()
 
 for vec in "${raw_vecs[@]}"; do
@@ -90,7 +90,7 @@ done
   echo
 } > "${foldername}/bvecs"
 
-#rm "${foldername}/bvecs_all.txt"
+rm "${foldername}/bvecs_all.txt"
 
 echo "[SUCCESS] ✅ Files created:"
 echo "         ${foldername}/bvals"
