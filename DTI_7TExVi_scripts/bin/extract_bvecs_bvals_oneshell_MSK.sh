@@ -19,7 +19,7 @@ sed -n '/PVM_DwEffBval/,/PVM_DwGradVec/{
 
 mapfile -t bvals < "${foldername}/bvals_original.txt"
 
-# Step 2: Move lowest 3 bvals to volumes 1, 12, 23
+# Step 2: Move 3 lowest bvals to Vols 1, 12, 23
 low_bvals=($(printf "%s\n" "${bvals[@]}" | sort -n | head -n 3))
 target_pos=(0 11 22)
 remaining_bvals=()
@@ -51,10 +51,11 @@ rm "${foldername}/bvals_original.txt"
 
 echo "[INFO] Extracting bvecs..."
 
-# Step 3: Extract full 33 vectors from PVM_DwGradVec
+# Step 3: Extract 33 clean vectors from PVM_DwGradVec
 sed -n '/##\$PVM_DwGradVec=( 33, 3 )/,/^##/p' "${foldername}/method_shell1" \
-| tr -s " " "\n" \
-| grep -E '^-?[0-9.]+' \
+| grep -v '^##' \
+| tr -s ' ' '\n' \
+| grep -E '^-?[0-9.]+$' \
 | head -n 99 \
 | awk 'ORS=NR%3?" ":"\n"' > "${foldername}/bvecs_all.txt"
 
@@ -77,6 +78,11 @@ for vec in "${raw_vecs[@]}"; do
     nonzero_vecs+=("$vec")
   fi
 done
+
+if [[ ${#zero_vecs[@]} -ne 3 ]]; then
+  echo "❌ Found ${#zero_vecs[@]} zero vectors — expected 3"
+  exit 1
+fi
 
 adjusted_vecs=()
 z_idx=0
@@ -111,7 +117,7 @@ done
   echo
 } > "${foldername}/bvecs"
 
-rm "${foldername}/bvecs_all.txt"
+#rm "${foldername}/bvecs_all.txt"
 
 echo "[SUCCESS] ✅ Final bvals and bvecs written to:"
 echo "    ${foldername}/bvals"
