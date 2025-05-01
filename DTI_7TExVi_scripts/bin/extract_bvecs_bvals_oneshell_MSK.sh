@@ -19,7 +19,7 @@ sed -n '/PVM_DwEffBval/,/PVM_DwGradVec/{
 
 mapfile -t bvals < "${foldername}/bvals_original.txt"
 
-# === Step 2: Move lowest 3 bvals to volumes 1, 12, 23 ===
+# === Step 2: Move 3 lowest bvals to volumes 1, 12, 23 ===
 low_bvals=($(printf "%s\n" "${bvals[@]}" | sort -n | head -n 3))
 target_pos=(0 11 22)
 remaining_bvals=()
@@ -51,35 +51,44 @@ rm "${foldername}/bvals_original.txt"
 
 echo "[INFO] Extracting bvecs..."
 
-# === Step 3: Extract full PVM_DwGradVec block ===
-sed -n '/##\$PVM_DwGradVec=( 33, 3 )/,/^##/p' "${foldername}/method_shell1" \
-| tr -s " " "\n" \
-| grep -E '^-?[0-9.]+' \
-| head -n 99 \
-| awk 'ORS=NR%3?" ":"\n"' > "${foldername}/bvecs_all.txt"
+# === Step 3: Extract only the 30 real vectors from PVM_DwGradVec ===
+vec_block=$(awk '
+  f && /^[^#]/ { gsub(/[()]/, ""); print }
+  /##\$PVM_DwGradVec=\( 33, 3 \)/ { f=1 }
+  f && /^##/ { exit }
+' "${foldername}/method_shell1")
 
-if [[ ! -s ${foldername}/bvecs_all.txt ]]; then
-  echo "[ERROR] bvecs_all.txt is empty — check extraction pattern."
+readarray -t all_vals <<< "$(echo "$vec_block" | tr -s ' ' '\n' | grep -E '^-?[0-9.]+$')"
+
+if [[ ${#all_vals[@]} -lt 99 ]]; then
+  echo "[ERROR] Found only ${#all_vals[@]} gradient values — expected 99"
   exit 1
 fi
 
-# === Step 4: Replace vectors at 1, 12, 23 with (0 0 0) ===
-insert_zero_indices=(0 11 22)
-mapfile -t raw_vecs < "${foldername}/bvecs_all.txt"
-
-if [[ ${#raw_vecs[@]} -ne 33 ]]; then
-  echo "[ERROR] Expected 33 gradient vectors, got ${#raw_vecs[@]}"
-  exit 1
-fi
-
-for idx in "${insert_zero_indices[@]}"; do
-  raw_vecs[$idx]="0 0 0"
+# Skip first 3 vectors = 9 values
+real_vectors=()
+for i in $(seq 9 3 98); do
+  real_vectors+=("${all_vals[$i]} ${all_vals[$((i+1))]} ${all_vals[$((i+2))]}")
 done
 
-# === Step 5: Transpose to FSL bvecs format ===
+# === Step 4: Insert (0 0 0) at volumes 1, 12, 23 ===
+insert_zero_indices=(0 11 22)
+adjusted_vecs=()
+vec_idx=0
+
+for i in $(seq 0 32); do
+  if [[ " ${insert_zero_indices[*]} " =~ " $i " ]]; then
+    adjusted_vecs+=("0 0 0")
+  else
+    adjusted_vecs+=("${real_vectors[$vec_idx]}")
+    ((vec_idx++))
+  fi
+done
+
+# === Step 5: Transpose into FSL bvecs format ===
 bvecs_x=(); bvecs_y=(); bvecs_z=()
 
-for vec in "${raw_vecs[@]}"; do
+for vec in "${adjusted_vecs[@]}"; do
   read -r x y z <<< "$vec"
   bvecs_x+=("$x")
   bvecs_y+=("$y")
@@ -95,6 +104,4 @@ done
   echo
 } > "${foldername}/bvecs"
 
-rm "${foldername}/bvecs_all.txt"
-
-echo "[SUCCESS] bvals and bvecs written to: ${foldername}/"
+echo "[SUCCESS] Created ${foldername}/bvals and ${foldername}/bvecs (33 entries each)"
