@@ -49,38 +49,50 @@ done
 printf "%s " "${final_bvals[@]}" > "${foldername}/bvals"
 rm "${foldername}/bvals_original.txt"
 
-echo "[INFO] Extracting real bvecs..."
+echo "[INFO] Extracting bvecs..."
 
-# Step 3: Extract only real 30 vectors (skip first 9 numbers)
+# Step 3: Extract full 33 vectors from PVM_DwGradVec
 sed -n '/##\$PVM_DwGradVec=( 33, 3 )/,/^##/p' "${foldername}/method_shell1" \
 | tr -s " " "\n" \
 | grep -E '^-?[0-9.]+' \
-| tail -n +10 \
-| head -n 90 \
-| awk 'ORS=NR%3?" ":"\n"' > "${foldername}/bvecs_real.txt"
+| head -n 99 \
+| awk 'ORS=NR%3?" ":"\n"' > "${foldername}/bvecs_all.txt"
 
-mapfile -t real_vecs < "${foldername}/bvecs_real.txt"
+mapfile -t raw_vecs < "${foldername}/bvecs_all.txt"
 
-if [[ ${#real_vecs[@]} -ne 30 ]]; then
-  echo "❌ Found ${#real_vecs[@]} real vectors — expected 30"
+if [[ ${#raw_vecs[@]} -ne 33 ]]; then
+  echo "❌ bvecs_all.txt contains ${#raw_vecs[@]} vectors — expected 33"
   exit 1
 fi
 
-# Step 4: Build full 33-vector set with (0 0 0) at 1, 12, 23
-insert_zero_indices=(0 11 22)
-adjusted_vecs=()
-real_idx=0
+# Step 4: Move existing (0 0 0) vectors to Vols 1, 12, 23
+target_pos=(0 11 22)
+zero_vecs=()
+nonzero_vecs=()
 
-for i in $(seq 0 32); do
-  if [[ " ${insert_zero_indices[*]} " =~ " $i " ]]; then
-    adjusted_vecs+=("0 0 0")
+for vec in "${raw_vecs[@]}"; do
+  if [[ "$vec" == "0 0 0" && ${#zero_vecs[@]} -lt 3 ]]; then
+    zero_vecs+=("$vec")
   else
-    adjusted_vecs+=("${real_vecs[$real_idx]}")
-    ((real_idx++))
+    nonzero_vecs+=("$vec")
   fi
 done
 
-# Step 5: Transpose to FSL format
+adjusted_vecs=()
+z_idx=0
+nz_idx=0
+
+for i in $(seq 0 32); do
+  if [[ " ${target_pos[*]} " =~ " $i " ]]; then
+    adjusted_vecs+=("${zero_vecs[$z_idx]}")
+    ((z_idx++))
+  else
+    adjusted_vecs+=("${nonzero_vecs[$nz_idx]}")
+    ((nz_idx++))
+  fi
+done
+
+# Step 5: Transpose to FSL bvecs format
 bvecs_x=(); bvecs_y=(); bvecs_z=()
 
 for vec in "${adjusted_vecs[@]}"; do
@@ -99,8 +111,8 @@ done
   echo
 } > "${foldername}/bvecs"
 
-rm "${foldername}/bvecs_real.txt"
+rm "${foldername}/bvecs_all.txt"
 
-echo "[SUCCESS] ✅ Final bvecs and bvals written to:"
+echo "[SUCCESS] ✅ Final bvals and bvecs written to:"
 echo "    ${foldername}/bvals"
 echo "    ${foldername}/bvecs"
