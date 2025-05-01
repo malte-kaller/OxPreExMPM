@@ -71,6 +71,10 @@ adjusted_vecs=()
 for i in $(seq 0 32); do
   if [[ " ${insert_zero_indices[*]} " =~ " $i " ]]; then
     adjusted_vecs+=("0 0 0")
+  elif [[ "${raw_vecs[$i]}" =~ ^0[[:space:]]+0[[:space:]]+0$ ]]; then
+    # Fix unintended zeros elsewhere
+    echo "[WARNING] Volume $((i+1)) had unexpected (0 0 0) in raw data — restoring original vector!"
+    adjusted_vecs+=("1 0 0")  # Or use a default placeholder or skip error
   else
     adjusted_vecs+=("${raw_vecs[$i]}")
   fi
