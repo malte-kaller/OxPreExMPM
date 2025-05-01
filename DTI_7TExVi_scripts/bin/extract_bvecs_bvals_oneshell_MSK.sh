@@ -49,32 +49,41 @@ done
 printf "%s " "${final_bvals[@]}" > "${foldername}/bvals"
 rm "${foldername}/bvals_original.txt"
 
-echo "[INFO] Extracting bvecs..."
+echo "[INFO] Extracting real bvecs..."
 
-# Step 3: Extract 33 gradient vectors (confirmed good method)
+# Step 3: Extract only real 30 vectors (skip first 9 numbers)
 sed -n '/##\$PVM_DwGradVec=( 33, 3 )/,/^##/p' "${foldername}/method_shell1" \
 | tr -s " " "\n" \
 | grep -E '^-?[0-9.]+' \
-| head -n 99 \
-| awk 'ORS=NR%3?" ":"\n"' > "${foldername}/bvecs_all.txt"
+| tail -n +10 \
+| head -n 90 \
+| awk 'ORS=NR%3?" ":"\n"' > "${foldername}/bvecs_real.txt"
 
-mapfile -t raw_vecs < "${foldername}/bvecs_all.txt"
+mapfile -t real_vecs < "${foldername}/bvecs_real.txt"
 
-if [[ ${#raw_vecs[@]} -ne 33 ]]; then
-  echo "❌ bvecs_all.txt contains ${#raw_vecs[@]} vectors — expected 33"
+if [[ ${#real_vecs[@]} -ne 30 ]]; then
+  echo "❌ Found ${#real_vecs[@]} real vectors — expected 30"
   exit 1
 fi
 
-# Step 4: Override only Volumes 1, 12, 23 with (0 0 0)
+# Step 4: Build full 33-vector set with (0 0 0) at 1, 12, 23
 insert_zero_indices=(0 11 22)
-for idx in "${insert_zero_indices[@]}"; do
-  raw_vecs[$idx]="0 0 0"
+adjusted_vecs=()
+real_idx=0
+
+for i in $(seq 0 32); do
+  if [[ " ${insert_zero_indices[*]} " =~ " $i " ]]; then
+    adjusted_vecs+=("0 0 0")
+  else
+    adjusted_vecs+=("${real_vecs[$real_idx]}")
+    ((real_idx++))
+  fi
 done
 
-# Step 5: Transpose to 3-row FSL format
+# Step 5: Transpose to FSL format
 bvecs_x=(); bvecs_y=(); bvecs_z=()
 
-for vec in "${raw_vecs[@]}"; do
+for vec in "${adjusted_vecs[@]}"; do
   read -r x y z <<< "$vec"
   bvecs_x+=("$x")
   bvecs_y+=("$y")
@@ -90,8 +99,8 @@ done
   echo
 } > "${foldername}/bvecs"
 
-rm "${foldername}/bvecs_all.txt"
+rm "${foldername}/bvecs_real.txt"
 
-echo "[SUCCESS] ✅ Files created:"
-echo "         ${foldername}/bvals"
-echo "         ${foldername}/bvecs"
+echo "[SUCCESS] ✅ Final bvecs and bvals written to:"
+echo "    ${foldername}/bvals"
+echo "    ${foldername}/bvecs"
