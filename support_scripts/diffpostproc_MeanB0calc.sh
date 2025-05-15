@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #This script creates the Mean B0 files of the subject 
-
+module add fsl
 #---DEFINE BASIC PARAMETERS FOR PROJECT------------------
 
 # Source the project settings
@@ -10,10 +10,10 @@ source $2
 #--------------------------------------------------------
 
 #For loop for each subject
-subj=$1
+#subj=$1
 
 
-dtiDir=$procDIR/$subj/DTI_processed
+dtiDir=$1
 
 #===Processing B0 for specific pipline. Assuming B0
 
@@ -22,7 +22,7 @@ fslroi ${dtiDir}/data.nii.gz ${dtiDir}/b0_1 0 1
 fslroi ${dtiDir}/data.nii.gz ${dtiDir}/b0_2 11 1
 fslroi ${dtiDir}/data.nii.gz ${dtiDir}/b0_3 22 1
 
-fslmerge -t ${outputdir}/b0s_data ${dtiDir}/b01.nii.gz ${dtiDir}/b02.nii.gz ${dtiDir}/b03.nii.gz
+fslmerge -t ${dtiDir}/b0s_data ${dtiDir}/b01.nii.gz ${dtiDir}/b02.nii.gz ${dtiDir}/b03.nii.gz
 
 # Step 2: Merge the extracted volumes into a new 4D file
 # (This step is optional for averaging just two volumes but included for completeness)
