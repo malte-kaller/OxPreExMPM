@@ -66,7 +66,7 @@ fslmerge -t ${outputdir}/b0s_data ${outputdir}/b01.nii.gz ${outputdir}/b02.nii.g
 
 echo Generating mask.
 fslmaths ${outputdir}/b0s_data -Tmean ${outputdir}/b0_mean
-fslmaths ${outputdir}/b0_mean -thr 250 -dilM -ero -dilM -dilM -dilM -dilM -ero -ero -ero -bin ${outputdir}/b0_mean_mask.nii.gz
+fslmaths ${outputdir}/b0_mean -thr 250 -dilM -ero -dilM -dilM -dilM -dilM -ero -bin ${outputdir}/b0_mean_mask.nii.gz
 
 echo Removing unnecessary files.
 rm ${outputdir}/b02.nii.gz ${outputdir}/b0_mean.nii.gz ${outputdir}/b0s_data.nii.gz

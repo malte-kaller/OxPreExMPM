@@ -123,7 +123,7 @@ echo "  → Job ID: $jid8"
 
 # === STEP 8: Mean B0 calculation ===
 echo "[STEP 8] Calculating mean B0..."
-jid9=$(fsl_sub -q short -N "dti_step8_b0mean_${subj}" -j $jid8 -l "$logDIR/logs5" \
+jid9=$(fsl_sub -q short -N "dti_step8_b0mean_${subj}" -j $jid1 -l "$logDIR/logs5" \
   "$sup_scriptDIR/diffpostproc_MeanB0calc.sh" "$subj" "$settings_file")
 echo "  → Job ID: $jid9"
 
