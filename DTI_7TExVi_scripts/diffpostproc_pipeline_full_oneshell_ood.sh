@@ -47,6 +47,7 @@ echo Queuing Bruker file handling, orientation correction and mask generation.
 jid1=`fsl_sub -q short -l ${outputdir}/logs1 /vols/Data/km/cetisca/projects/diffpostproc-exvivo-mouse-bruker7t/diffpostproc_step1_oneshell.sh ${inputdir} ${shell1} ${blipDown} ${outputdir}`
 echo Jobid $jid1
 
+: '
 echo Part 2 of the pipeline:
 echo Queuing Gibbs ringing correction.
 jid2=`fsl_sub -q short -j $jid1 -l ${outputdir}/ deGibbs3D ${outputdir}/data.nii.gz ${outputdir}/data_gibbs.nii.gz `
@@ -82,3 +83,4 @@ echo Queuing dtifit and final file manipulations/organisations before running NO
 jid8=`fsl_sub -q short -l ${outputdir}/logs5 -j $jid7 /vols/Data/km/cetisca/projects/diffpostproc-exvivo-mouse-bruker7t/diffpostproc_step5_oneshell.sh ${outputdir}`
 
 echo Jobid $jid8
+'

@@ -17,13 +17,16 @@ dtiDir=$procDIR/$subj/DTI_processed
 #===Processing B0 for specific pipline. Assuming B0
 
 # Step 1: Extract the first and the seventeenth volumes
-fslroi $dtiDir/data_gibbs_eddy.nii.gz $dtiDir/volume_0.nii.gz 0 1
-fslroi $dtiDir/data_gibbs_eddy.nii.gz $dtiDir/volume_16.nii.gz 16 1
+fslroi ${outputdir}/data.nii.gz ${outputdir}/b0_1 0 1
+fslroi ${outputdir}/data.nii.gz ${outputdir}/b0_2 11 1
+fslroi ${outputdir}/data.nii.gz ${outputdir}/b0_3 22 1
+
+fslmerge -t ${outputdir}/b0s_data ${outputdir}/b01.nii.gz ${outputdir}/b02.nii.gz ${outputdir}/b03.nii.gz
 
 # Step 2: Merge the extracted volumes into a new 4D file
 # (This step is optional for averaging just two volumes but included for completeness)
-rm -f $dtiDir/merged_volumes.nii.gz
-fslmerge -t $dtiDir/merged_volumes.nii.gz $dtiDir/volume_0.nii.gz $dtiDir/volume_16.nii.gz
+rm -f $dtiDir/merged_volumes_B0.nii.gz
+fslmerge -t $dtiDir/merged_volumes_B0.nii.gz ${outputdir}/b0_1.nii.gz ${outputdir}/b0_2.nii.gz ${outputdir}/b0_3.nii.gz
 
 # Step 3: Average the volumes
 # Since you're only working with two volumes, you can directly average them without merging, but for demonstration:
