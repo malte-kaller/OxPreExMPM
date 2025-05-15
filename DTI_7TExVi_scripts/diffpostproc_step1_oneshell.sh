@@ -59,8 +59,10 @@ cp ${outputdir}/data_merged_original.nii.gz ${outputdir}/data.nii.gz
 orient_corr ${outputdir}/data.nii.gz
 
 fslroi ${outputdir}/data.nii.gz ${outputdir}/b01 0 1
-fslroi ${outputdir}/data.nii.gz ${outputdir}/b02 16 1
-fslmerge -t ${outputdir}/b0s_data ${outputdir}/b01.nii.gz ${outputdir}/b02.nii.gz
+fslroi ${outputdir}/data.nii.gz ${outputdir}/b02 11 1
+fslroi ${outputdir}/data.nii.gz ${outputdir}/b03 22 1
+
+fslmerge -t ${outputdir}/b0s_data ${outputdir}/b01.nii.gz ${outputdir}/b02.nii.gz ${outputdir}/b03.nii.gz
 
 echo Generating mask.
 fslmaths ${outputdir}/b0s_data -Tmean ${outputdir}/b0_mean
