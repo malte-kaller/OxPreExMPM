@@ -51,7 +51,7 @@ jid1=$(fsl_sub -q short -N "dti_step1_${subj}" -l "$logDIR/logs1" \
   "$inputdir" "$shell1" "$blipDown" "$outputdir" "$settings_file")
 echo "  → Job ID: $jid1"
 
-:'No run section starts
+#:'No run section starts
 
 # === STEP 2: Gibbs ringing correction ===
 echo "[STEP 2] Running Gibbs ringing correction..."
@@ -119,7 +119,7 @@ jid8=$(fsl_sub --coprocessor cuda -q gpu_long -N "dti_step7_dtifit_${subj}" -j $
   $DTIscriptDIR/diffpostproc_step5_oneshell.sh "$outputdir")
 echo "  → Job ID: $jid8"
 
-' #Not run section ends 
+#' #Not run section ends 
 
 # === STEP 8: Mean B0 calculation ===
 echo "[STEP 8] Calculating mean B0..."
