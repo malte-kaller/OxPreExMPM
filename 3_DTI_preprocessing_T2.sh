@@ -12,8 +12,8 @@ setting=$scriptDIR/project_settings.sh
 
 # For debugging steps: 
 # Creating limited subjects:
-#subjlist="20250224_084029_MYRD5_1b_MyReach_T2w_DTI_MPM_1_1
-#20250224_204529_MYRD5_1e_MyReach_T2w_DTI_MPM_2_1_5"
+subjlist="20250224_084029_MYRD5_1b_MyReach_T2w_DTI_MPM_1_1
+20250224_204529_MYRD5_1e_MyReach_T2w_DTI_MPM_2_1_5"
 
 # Prepare log directory for this script
 logDIR="$scriptDIR/logs/DTI"

@@ -64,7 +64,7 @@ echo "[STEP 3] Pre-topup processing..."
 jid3=$(fsl_sub -q short -N "dti_step3_prep_${subj}" -j $jid2 -l "$logDIR/logs3" \
   $DTIscriptDIR/diffpostproc_step3.sh "$outputdir")
 echo "  → Job ID: $jid3"
-
+:'
 # === STEP 4: Topup correction ===
 echo "[STEP 4] Running topup..."
 jid4=$(fsl_sub --coprocessor cuda -q gpu_long -N "dti_step4_topup_${subj}" -j $jid3 -l "$logDIR/logs4" \
@@ -119,7 +119,7 @@ jid8=$(fsl_sub --coprocessor cuda -q gpu_long -N "dti_step7_dtifit_${subj}" -j $
   $DTIscriptDIR/diffpostproc_step5_oneshell.sh "$outputdir")
 echo "  → Job ID: $jid8"
 
-#' #Not run section ends 
+' #Not run section ends 
 
 # === STEP 8: Mean B0 calculation ===
 echo "[STEP 8] Calculating mean B0..."

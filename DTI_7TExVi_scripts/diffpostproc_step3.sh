@@ -12,7 +12,11 @@ fslorient -setqformcode 1 $1
 }
 
 gzip ${outputdir}/b0_blipDown.nii
-orient_corr ${outputdir}/b0_blipDown.nii.gz
+
+# added orientation correction here, as mistakes came in here
+#orient_corr ${outputdir}/b01.nii.gz
+
+#orient_corr ${outputdir}/b0_blipDown.nii.gz
 fslmerge -t ${outputdir}/b0_topup ${outputdir}/b01.nii.gz ${outputdir}/b0_blipDown.nii.gz
 
 cp ${outputdir}/data_gibbs.nii.gz ${outputdir}/data_gibbs_cp.nii.gz
