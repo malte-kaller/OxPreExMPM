@@ -18,9 +18,9 @@ dtiDir=$1
 #===Processing B0 for specific pipline. Assuming B0
 
 # Step 1: Extract the first and the seventeenth volumes
-fslroi ${dtiDir}/data.nii.gz ${dtiDir}/b0_1 0 1
-fslroi ${dtiDir}/data.nii.gz ${dtiDir}/b0_2 11 1
-fslroi ${dtiDir}/data.nii.gz ${dtiDir}/b0_3 22 1
+fslroi ${dtiDir}/data_gibbs_eddy.nii.gz ${dtiDir}/b0_1 0 1
+fslroi ${dtiDir}/data_gibbs_eddy.nii.gz ${dtiDir}/b0_2 11 1
+fslroi ${dtiDir}/data_gibbs_eddy.nii.gz ${dtiDir}/b0_3 22 1
 
 fslmerge -t ${dtiDir}/b0s_data ${dtiDir}/b0_1.nii.gz ${dtiDir}/b0_2.nii.gz ${dtiDir}/b0_3.nii.gz
 

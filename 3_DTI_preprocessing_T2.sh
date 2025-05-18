@@ -38,8 +38,8 @@ for subj in $subjlist; do
 
   # Define output directory
   TaDIR=$projectDIR/${projectname}_preprocessing/$subj/DTI_processed
-  [ -d "$TaDIR" ] && rm -rf "$TaDIR"
-  mkdir -p "$TaDIR"
+  #[ -d "$TaDIR" ] && rm -rf "$TaDIR"
+  #mkdir -p "$TaDIR"
 
   # Log file for this subject
   subj_log="$logDIR/dti_pipeline_${subj}.log"

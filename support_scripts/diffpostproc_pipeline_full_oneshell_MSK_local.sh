@@ -44,6 +44,8 @@ fi
 logDIR="$scriptDIR/DTI"
 mkdir -p "$logDIR"/logs{1,2,3,4,5,applytopup}
 
+:'No run section starts
+
 # === STEP 1: Bruker to NIfTI conversion and organisation ===
 echo "[STEP 1] Converting and organising Bruker files..."
 jid1=$(fsl_sub -q short -N "dti_step1_${subj}" -l "$logDIR/logs1" \
@@ -51,7 +53,7 @@ jid1=$(fsl_sub -q short -N "dti_step1_${subj}" -l "$logDIR/logs1" \
   "$inputdir" "$shell1" "$blipDown" "$outputdir" "$settings_file")
 echo "  → Job ID: $jid1"
 
-#:'No run section starts
+
 
 # === STEP 2: Gibbs ringing correction ===
 echo "[STEP 2] Running Gibbs ringing correction..."
@@ -119,14 +121,20 @@ jid8=$(fsl_sub --coprocessor cuda -q gpu_long -N "dti_step7_dtifit_${subj}" -j $
   $DTIscriptDIR/diffpostproc_step5_oneshell.sh "$outputdir")
 echo "  → Job ID: $jid8"
 
-#'#Not run section ends 
+
 
 # === STEP 8: Mean B0 calculation ===
 echo "[STEP 8] Calculating mean B0..."
-jid9=$(fsl_sub -q short -N "dti_step8_b0mean_${subj}" -j $jid1 -l "$logDIR/logs5" \
+jid9=$(fsl_sub -q short -N "dti_step8_b0mean_${subj}" -j $jid8 -l "$logDIR/logs5" \
   "$sup_scriptDIR/diffpostproc_MeanB0calc.sh" "$outputdir" "$settings_file")
 echo "  → Job ID: $jid9"
 
+'#Not run section ends 
 
+#---- temp
 
-
+# === STEP 8: Mean B0 calculation ===
+echo "[STEP 8] Calculating mean B0..."
+jid9=$(fsl_sub -q short -N "dti_step8_b0mean_${subj}" -l "$logDIR/logs5" \
+  "$sup_scriptDIR/diffpostproc_MeanB0calc.sh" "$outputdir" "$settings_file")
+echo "  → Job ID: $jid9"
