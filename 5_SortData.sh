@@ -19,9 +19,9 @@ echo "Organising data for $subj"
 
 Step1=`fsl_sub -q veryshort.q -l $scriptDIR/logs/Sort $sup_scriptDIR/SortData_ForSubj.sh $subj`
 
-Step2=`fsl_sub -q veryshort.q -j ${Step1} -l $scriptDIR/logs/Sort $sup_scriptDIR/Register_NonDTI_to_DTI.sh $subj`
+#Step2=`fsl_sub -q veryshort.q -j ${Step1} -l $scriptDIR/logs/Sort $sup_scriptDIR/Register_NonDTI_to_DTI.sh $subj`
 
-Step3=`fsl_sub -q veryshort.q -j ${Step2} -l $scriptDIR/logs/Sort $sup_scriptDIR/SortData_ForRegistrationAnalysis.sh $subj`
+#Step3=`fsl_sub -q veryshort.q -j ${Step2} -l $scriptDIR/logs/Sort $sup_scriptDIR/SortData_ForRegistrationAnalysis.sh $subj`
 
 done 
 
