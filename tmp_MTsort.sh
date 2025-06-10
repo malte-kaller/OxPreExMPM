@@ -15,7 +15,7 @@ orient_corr () {
   fslorient -deleteorient "$file"
 
   # Apply axis swap: z -y x
-  fslswapdim "$file" -z -y -x "$file"
+  fslswapdim "$file" z y -x "$file"
 
   # Set new voxel scaling and affine matrix
   fslorient -setsform 0.1 0 0 0  \
@@ -39,7 +39,7 @@ for subj in $subjlist; do
 
   #!/bin/bash
 
-if [[ $subj =~ M([A-Z0-9_]+?[0-9][a-z]) ]]; then
+if [[ $subj =~ (M[A-Z0-9_]+?[0-9][a-z]) ]]; then
     name="${BASH_REMATCH[1]}"
     echo "$result"
 else
