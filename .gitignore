@@ -4,4 +4,6 @@ acquisition_order_files/
 DTI/
 MPM/
 project_settings.sh
-tmp_MTsort/
+tmp_MTsort.sh
+tmp_B0sort2.sh
+tmp_B0sort.sh

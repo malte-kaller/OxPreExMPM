@@ -44,7 +44,7 @@ fi
 logDIR="$scriptDIR/DTI"
 mkdir -p "$logDIR"/logs{1,2,3,4,5,applytopup}
 
-:'No run section starts
+#:'No run section starts
 
 # === STEP 1: Bruker to NIfTI conversion and organisation ===
 echo "[STEP 1] Converting and organising Bruker files..."
@@ -129,7 +129,7 @@ jid9=$(fsl_sub -q short -N "dti_step8_b0mean_${subj}" -j $jid8 -l "$logDIR/logs5
   "$sup_scriptDIR/diffpostproc_MeanB0calc.sh" "$outputdir" "$settings_file")
 echo "  → Job ID: $jid9"
 
-'#Not run section ends 
+#'#Not run section ends 
 
 #---- temp
 
