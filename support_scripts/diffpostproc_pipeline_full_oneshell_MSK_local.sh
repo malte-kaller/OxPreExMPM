@@ -122,7 +122,6 @@ jid8=$(fsl_sub --coprocessor cuda -q gpu_long -N "dti_step7_dtifit_${subj}" -j $
 echo "  → Job ID: $jid8"
 
 
-
 # === STEP 8: Mean B0 calculation ===
 echo "[STEP 8] Calculating mean B0..."
 jid9=$(fsl_sub -q short -N "dti_step8_b0mean_${subj}" -j $jid8 -l "$logDIR/logs5" \
@@ -134,7 +133,7 @@ echo "  → Job ID: $jid9"
 #---- temp
 
 # === STEP 8: Mean B0 calculation ===
-echo "[STEP 8] Calculating mean B0..."
-jid9=$(fsl_sub -q short -N "dti_step8_b0mean_${subj}" -l "$logDIR/logs5" \
-  "$sup_scriptDIR/diffpostproc_MeanB0calc.sh" "$outputdir" "$settings_file")
-echo "  → Job ID: $jid9"
+#echo "[STEP 8] Calculating mean B0..."
+#jid9=$(fsl_sub -q short -N "dti_step8_b0mean_${subj}" -l "$logDIR/logs5" \
+#  "$sup_scriptDIR/diffpostproc_MeanB0calc.sh" "$outputdir" "$settings_file")
+#echo "  → Job ID: $jid9"
