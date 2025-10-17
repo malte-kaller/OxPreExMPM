@@ -39,7 +39,7 @@ T1file=mt_MGE_TR100_100um_FA35_T1
 
 for subj in $subjlist; do
    
-: '
+
 #Step1=`fsl_sub -q short -l $scriptDIR/logs/MPM/ -N hMRIconvert bash $sup_scriptDIR/my_hMRI_DICOM_wrapper_MSK_EDicom.sh $subj`
 
 echo "Submitting DICOM conversion job for subject: $subj"
@@ -47,6 +47,7 @@ echo "Submitting DICOM conversion job for subject: $subj"
 Step1=$(fsl_sub -q short -l "$scriptDIR/logs/MPM" -N "hMRIconvert_${subj}" \
   bash "$sup_scriptDIR/my_hMRI_DICOM_wrapper_MSK_EDicom.sh" "$subj" "$scriptDIR/project_settings.sh")
 
+: '
 #======STEP 2: Register repetition =========
 #This script registers repetion of scans to each other to avoid any artefacts
 
@@ -55,7 +56,7 @@ Step1=$(fsl_sub -q short -l "$scriptDIR/logs/MPM" -N "hMRIconvert_${subj}" \
 Step2a=$(fsl_sub -q short -j ${Step1} -l "$scriptDIR/logs/MPM" \
   -N "SplitDicom_${subj}" \
   bash $sup_scriptDIR/SplitDicom.sh $subj $setting)
-'
+
 
 # Tmp adjustment for single subject
 Step2a=$(fsl_sub -q short -l "$scriptDIR/logs/MPM" \
@@ -83,7 +84,7 @@ echo "Submitting Step 4 (hMRI MPM calculation) for subject: $subj"
 
 Step4=$(fsl_sub -q short -j ${Step3} -l "$scriptDIR/logs/MPM" -N "hMRI_MPMproc_${subj}" \
   bash "$sup_scriptDIR/my_hMRI_wrapper_MSK.sh" "$subj" "$setting")
-
+'
 done
 
 echo "Script done"
