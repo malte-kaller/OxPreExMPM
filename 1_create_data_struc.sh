@@ -73,7 +73,7 @@ rm "$scriptDIR/project_settings.sh"
 } > "$projectDIR/project_settings.sh"
 
 # Copy the settings file to the script directory as well
-cp "$projectDIR/project_settings.sh" "$scriptDIR/project_settings.sh"
+#cp "$projectDIR/project_settings.sh" "$scriptDIR/project_settings.sh"
 
 #------------------------------------------------------
 #===Copy all subject data in raw Brukers format into the folder & Identify the scan
@@ -86,7 +86,7 @@ for subj in $subjlist; do
 ##If that is desired, switch between the two options for scripts below
  
  #echo "copying and identifying data for $subj"
- fsl_sub -q short -l $scriptDIR/logs $sup_scriptDIR/copy_identify_rawbrukers.sh $subj
+ #fsl_sub -q short -l $scriptDIR/logs $sup_scriptDIR/copy_identify_rawbrukers.sh $subj
 
 # echo "moving and identifying data for $subj"
 # fsl_sub -q short -l $scriptDIR/logs $sup_scriptDIR/move_identify_rawbrukers.sh $subj
