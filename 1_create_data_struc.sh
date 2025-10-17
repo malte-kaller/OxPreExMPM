@@ -11,7 +11,7 @@ module add fsl_sub
 #---DEFINE BASIC PARAMETERS FOR PROJECT------------------
 
 #Define the name of the project
-projectname="ReTa_Yingshi"
+projectname="GRIA"
 
 #Define path to folder in project should be created
 workDIR="/vols/Data/preclinical/Myelin_HJB/Projects/"
