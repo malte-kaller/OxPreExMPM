@@ -1,9 +1,12 @@
 #!/bin/bash
 
-# Source the project settings
-source "project_settings.sh"
+
 
 subj=$1
+setting=$2
+
+# Source the project settings
+source "$setting"
 
 #------------------------------------------------------
 #===Copy all subject data in raw Brukers format into the folder & Identify the scan
