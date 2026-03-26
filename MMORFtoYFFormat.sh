@@ -17,21 +17,18 @@ outDIR=$projectDIR/MMORF_Registrated_data
   ## Make a list of all subjects exacted from the folder
 
   # produce a newline-separated unique list of subject IDs
-  subjects=$(ls *.nii.gz 2>/dev/null \
-    | sed -E 's/.*([A-Za-z]{4}[0-9]{1,2}_[0-9][a-z]).*/\1/' \
-    | sort -u)
+subjects=$(
+  find "$inputDIR" -maxdepth 1 -type f -name '*.nii.gz' -printf '%f\n' \
+  | sed -E 's/.*((MYR[A-Za-z])[0-9]{1,2}_[0-9][a-z](_flipped)?).*/\1/' \
+  | grep '^MYR' \
+  | sort -u \
+  | tr '\n' ' '
+)
 
-  # loop
-  for id in $subjects; do
+for id in $subjects; do
     echo "subject: $id"
+done
 
-    # get all files matching this subject, flipped or not    
-    files=$(ls ${id}*.nii.gz 2>/dev/null)
-
-    echo "Files:"
-    echo "$files"
-    echo ""
-  done
 # =====
   
 # Create subject specific folders =====
@@ -93,4 +90,28 @@ for id in $subjects; do
   else
     echo "No DTI file for $id"
   fi
+done
+
+# Calculate RD and AD from the DTI decomposition
+for id in $subjects; do
+
+# inside your subject loop, where id is e.g. MYRF31_1g and outDIR is set
+L1="$outDIR/$id/${id}_DTI_decomp_L1.nii.gz"
+L2="$outDIR/$id/${id}_DTI_decomp_L2.nii.gz"
+L3="$outDIR/$id/${id}_DTI_decomp_L3.nii.gz"
+
+# AD = L1 (just copy via fslmaths to keep header/format consistent)
+if [[ -f "$L1" ]]; then
+  fslmaths "$L1" -mul 1 "$outDIR/$id/${id}_AD.nii.gz"
+else
+  echo "Missing L1 for $id"
+fi
+
+# RD = (L2 + L3) / 2
+if [[ -f "$L2" && -f "$L3" ]]; then
+  fslmaths "$L2" -add "$L3" -div 2 "$outDIR/$id/${id}_RD.nii.gz"
+else
+  echo "Missing L2/L3 for $id"
+fi
+
 done
