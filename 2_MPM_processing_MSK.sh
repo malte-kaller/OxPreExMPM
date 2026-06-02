@@ -9,7 +9,7 @@ source "project_settings.sh"
 setting=$scriptDIR/project_settings.sh
 
 # Define subject list
-#subjlist="20250219_185248_MYRD5_1a_MyReach_T2w_DTI_MPM_2_1_3"
+#subjlist="20251103_184533_GRIA_80_7_GRIA_MPM_Diffusion_1_1"
 
 
 #Add Matlab
@@ -43,11 +43,12 @@ T1file=mt_MGE_TR100_100um_FA35_T1
 
 for subj in $subjlist; do
    
-: '
+
 #Step1=`fsl_sub -q short -l $scriptDIR/logs/MPM/ -N hMRIconvert bash $sup_scriptDIR/my_hMRI_DICOM_wrapper_MSK_EDicom.sh $subj`
 
 echo "Submitting DICOM conversion job for subject: $subj"
 
+: '
 Step1=$(fsl_sub -q short -l "$scriptDIR/logs/MPM" -N "hMRIconvert_${subj}" \
   bash "$sup_scriptDIR/my_hMRI_DICOM_wrapper_MSK_EDicom.sh" "$subj" "$scriptDIR/project_settings.sh")
 
@@ -55,12 +56,11 @@ Step1=$(fsl_sub -q short -l "$scriptDIR/logs/MPM" -N "hMRIconvert_${subj}" \
 #======STEP 2: Register repetition =========
 #This script registers repetion of scans to each other to avoid any artefacts
 
-  echo "Job submitted for register repetition of scans for $subj";
+  #echo "Job submitted for register repetition of scans for $subj";
   
 Step2a=$(fsl_sub -q short -j ${Step1} -l "$scriptDIR/logs/MPM" \
   -N "SplitDicom_${subj}" \
   bash $sup_scriptDIR/SplitDicom.sh $subj $setting)
-
 
 # Tmp adjustment for single subject
 Step2a=$(fsl_sub -q short -l "$scriptDIR/logs/MPM" \
@@ -71,17 +71,23 @@ Step2=$(fsl_sub -q short -j ${Step2a} -l "$scriptDIR/logs/MPM" \
   -N "RegisterReps_${subj}" \
   bash $sup_scriptDIR/register_repetitions_MSK_EDicom.sh $subj $MTfile $PDfile $T1file $setting)
 
-' 
 
 Step2=$(fsl_sub -q short  -l "$scriptDIR/logs/MPM" \
   -N "RegisterReps_${subj}" \
   bash $sup_scriptDIR/register_repetitions_MSK_EDicom.sh $subj $MTfile $PDfile $T1file $setting)
 
+
 # === STEP 3: Generate and register B1 map for hMRI processing ===
 echo "Submitting Step 3 (B1 map generation and registration) for subject: $subj"
 
+
+
 # Step 3a: Calculate B1 map (Double Angle Mapping)
 Step3a=$(fsl_sub -q short -j ${Step2} -l "$scriptDIR/logs/MPM" -N "B1DAM_${subj}" \
+  bash "$sup_scriptDIR/Double_Angle_Mapping_MSK.sh" "$subj" "$setting")
+
+'
+Step3a=$(fsl_sub -q short -l "$scriptDIR/logs/MPM" -N "B1DAM_${subj}" \
   bash "$sup_scriptDIR/Double_Angle_Mapping_MSK.sh" "$subj" "$setting")
 
 # Step 3b: Register B1 map

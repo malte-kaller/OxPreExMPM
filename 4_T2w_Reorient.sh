@@ -4,7 +4,7 @@ module add fsl
 source "project_settings.sh"
 
 # Define subject list
-subjlist="20250219_185248_MYRD5_1a_MyReach_T2w_DTI_MPM_2_1_3"
+#subjlist="20250219_185248_MYRD5_1a_MyReach_T2w_DTI_MPM_2_1_3"
 
 # Orientation correction function
 orient_corr () {

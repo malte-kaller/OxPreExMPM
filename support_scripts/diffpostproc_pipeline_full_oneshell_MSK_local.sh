@@ -2,6 +2,7 @@
 
 module add mrdegibbs
 module add fsl
+module add MRtrix3
 
 # Parse input arguments
 if [ $# -lt 4 ]; then
@@ -49,10 +50,9 @@ mkdir -p "$logDIR"/logs{1,2,3,4,5,applytopup}
 # === STEP 1: Bruker to NIfTI conversion and organisation ===
 echo "[STEP 1] Converting and organising Bruker files..."
 jid1=$(fsl_sub -q short -N "dti_step1_${subj}" -l "$logDIR/logs1" \
-  $DTIscriptDIR/diffpostproc_step1_oneshell.sh \
+  $DTIscriptDIR/diffpostproc_step1_ther.sh \
   "$inputdir" "$shell1" "$blipDown" "$outputdir" "$settings_file")
 echo "  → Job ID: $jid1"
-
 
 
 # === STEP 2: Gibbs ringing correction ===
